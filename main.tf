@@ -28,6 +28,9 @@ module "vpc" {
     local.network_acls["public_inbound"]
   )
 
+  private_dedicated_network_acl = true
+  private_inbound_acl_rules     = local.network_acls["private_inbound"]
+
   tags = {
     Name        = format("%s-vpc", var.prefix)
     Terraform   = "true"
@@ -74,6 +77,16 @@ locals {
         protocol    = "tcp"
         cidr_block  = var.allowed_app_cidr
       },
+    ]
+    private_inbound = [
+      {
+        rule_number = 200
+        rule_action = "allow"
+        from_port   = 0
+        to_port     = 0
+        protocol    = "tcp"
+        cidr_block  = var.cidr
+      }
     ]
   }
 }
