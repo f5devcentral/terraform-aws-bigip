@@ -19,7 +19,7 @@ module "vpc" {
   azs = local.azs
 
   public_subnets = [
-    for num in local.public_subnet_numbers :
+    for num in range(length(local.azs)) :
     cidrsubnet(local.cidr, 8, num)
   ]
 
@@ -74,23 +74,24 @@ module "ssh_secure_sg" {
 module bigip {
   source = "../../"
 
-  prefix       = format("%s-bigip-1-nic_with_new_vpc-%s", local.prefix, random_id.id.hex)
-  ec2_key_name = "cody-key"
+  prefix            = format("%s-bigip-1-nic_with_new_vpc-%s", local.prefix, random_id.id.hex)
+  f5_instance_count = length(local.azs)
+  ec2_key_name      = "cody-key"
   vpc_security_group_ids = [
     module.web_server_sg.this_security_group_id,
     module.web_server_secure_sg.this_security_group_id,
     module.ssh_secure_sg.this_security_group_id,
     module.bigip_mgmt_secure_sg.this_security_group_id
   ]
-  vpc_mgmt_subnet_ids = [module.vpc.public_subnets[0]]
+  vpc_mgmt_subnet_ids = module.vpc.public_subnets
 }
 
 locals {
-  prefix                = "tf-aws-bigip"
-  region                = "us-east-1"
-  azs                   = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  cidr                  = "10.0.0.0/16"
-  public_subnet_numbers = [1]
-  allowed_mgmt_cidr     = "0.0.0.0/0"
-  allowed_app_cidr      = "0.0.0.0/0"
+  prefix = "tf-aws-bigip"
+  region = "us-east-1"
+  # azs               = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  azs               = ["us-east-1a", "us-east-1b"]
+  cidr              = "10.0.0.0/16"
+  allowed_mgmt_cidr = "0.0.0.0/0"
+  allowed_app_cidr  = "0.0.0.0/0"
 }
