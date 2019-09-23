@@ -75,9 +75,9 @@ module "ssh_secure_sg" {
 
 # Create BIG-IP
 module bigip {
-  source = "../"
+  source = "../../"
 
-  prefix       = format("%s-bigip-1-nic_with_new_vpc-%s", local.prefix, random_id.id.hex)
+  prefix       = format("%s-3-nic_with_new_vpc-%s", local.prefix, random_id.id.hex)
   ec2_key_name = "cody-key"
   vpc_security_group_ids = [
     module.web_server_sg.this_security_group_id,

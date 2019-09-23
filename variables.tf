@@ -35,16 +35,19 @@ variable "vpc_security_group_ids" {
 variable "vpc_public_subnet_ids" {
   description = "AWS VPC Subnet id for the public subnet"
   type        = list
+  default     = []
 }
 
 variable "vpc_private_subnet_ids" {
   description = "AWS VPC Subnet id for the private subnet"
   type        = list
+  default     = []
 }
 
 variable "vpc_mgmt_subnet_ids" {
   description = "AWS VPC Subnet id for the management subnet"
   type        = list
+  default     = []
 }
 
 variable "mgmt_eip" {
