@@ -49,6 +49,23 @@ resource "aws_instance" "f5_bigip" {
   provisioner "local-exec" {
     command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 -v admin@${self.public_dns} 'modify auth user admin shell bash'"
   }
+
+  #
+  # download and install AS3 and Declarative Onboarding
+  #
+  provisioner "file" {
+    content       = "${data.template_file.vm_onboard.rendered}"
+    destination   = "/var/tmp/onboard.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /var/tmp/onboard.sh",
+      "/var/tmp/onboard.sh"
+    ]
+  }
+
+
 }
 
 data "template_file" "vm_onboard" {
