@@ -16,6 +16,8 @@ module bigip {
     sg-01234567890abcdef
   ]
   vpc_mgmt_subnet_ids = subnet-01234567890abcdef
+
+  private_key_path  = "~/.ssh/cody-key.pub"
   
 }
 ```

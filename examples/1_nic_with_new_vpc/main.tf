@@ -74,10 +74,14 @@ module "ssh_secure_sg" {
 module bigip {
   source = "../../"
 
-  prefix            = format("%s-bigip-1-nic_with_new_vpc-%s", local.prefix, random_id.id.hex)
+  prefix = format(
+    "%s-bigip-1-nic_with_new_vpc-%s",
+    local.prefix,
+    random_id.id.hex
+  )
   f5_instance_count = length(local.azs)
-  ec2_key_name      = var.ssh_key_name
-  ec2_private_key   = "${path.module}/${var.private_key_path}"
+  ec2_key_name      = local.ec2_key_name
+  ec2_private_key   = "${path.module}/${local.private_key_path}"
   vpc_security_group_ids = [
     module.web_server_sg.this_security_group_id,
     module.web_server_secure_sg.this_security_group_id,
@@ -85,14 +89,16 @@ module bigip {
     module.bigip_mgmt_secure_sg.this_security_group_id
   ]
   vpc_mgmt_subnet_ids = module.vpc.public_subnets
+  private_key_path    = local.private_key_path
 }
 
 locals {
-  prefix = "tf-aws-bigip"
-  region = "us-east-2"
-  # azs               = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  prefix            = "tf-aws-bigip"
+  region            = "us-east-2"
   azs               = ["us-east-2a", "us-east-2b"]
   cidr              = "10.0.0.0/16"
   allowed_mgmt_cidr = "0.0.0.0/0"
   allowed_app_cidr  = "0.0.0.0/0"
+  ec2_key_name      = "cody-key"
+  private_key_path  = "~/.ssh/cody-key.pem"
 }
