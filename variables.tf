@@ -27,6 +27,11 @@ variable "ec2_key_name" {
   type        = string
 }
 
+variable "ec2_private_key" {
+  description = "Private key to authenticate to ec2_key_name"
+  type        = string
+}
+
 variable "vpc_security_group_ids" {
   description = "AWS VPC Security Group id"
   type        = list
@@ -55,3 +60,4 @@ variable "mgmt_eip" {
   type        = bool
   default     = true
 }
+

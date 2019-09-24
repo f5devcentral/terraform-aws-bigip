@@ -76,7 +76,8 @@ module bigip {
 
   prefix            = format("%s-bigip-1-nic_with_new_vpc-%s", local.prefix, random_id.id.hex)
   f5_instance_count = length(local.azs)
-  ec2_key_name      = "cody-key"
+  ec2_key_name      = var.ssh_key_name
+  ec2_private_key   = "${path.module}/${var.private_key_path}"
   vpc_security_group_ids = [
     module.web_server_sg.this_security_group_id,
     module.web_server_secure_sg.this_security_group_id,
@@ -88,10 +89,13 @@ module bigip {
 
 locals {
   prefix = "tf-aws-bigip"
-  region = "us-east-1"
+  region = "us-east-2"
   # azs               = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  azs               = ["us-east-1a", "us-east-1b"]
+  azs               = ["us-east-2a", "us-east-2b"]
   cidr              = "10.0.0.0/16"
   allowed_mgmt_cidr = "0.0.0.0/0"
   allowed_app_cidr  = "0.0.0.0/0"
 }
+
+variable "ssh_key_name" {}
+variable "private_key_path" {}
