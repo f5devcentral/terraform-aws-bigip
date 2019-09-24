@@ -20,6 +20,22 @@ resource "random_string" "password" {
   override_special = "@"
 }
 
+# 
+# Create Public Netowrk Interfaces
+#
+resource "aws_network_interface" "public" {
+  count     = length(var.vpc_public_subnet_ids)
+  subnet_id = var.vpc_public_subnet_ids[count.index]
+}
+
+# 
+# Create Private Netowrk Interfaces
+#
+resource "aws_network_interface" "private" {
+  count     = length(var.vpc_private_subnet_ids)
+  subnet_id = var.vpc_private_subnet_ids[count.index]
+}
+
 #
 # Deploy BIG-IP
 #
@@ -42,6 +58,15 @@ resource "aws_instance" "f5_bigip" {
 
   root_block_device {
     delete_on_termination = true
+  }
+
+  dynamic "network_interface" {
+    for_each = aws_network_interface.public[0]
+
+    content {
+      network_interface_id = network_interface.id
+      device_index         = 1
+    }
   }
 
   tags = {
