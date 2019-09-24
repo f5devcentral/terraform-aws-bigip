@@ -34,4 +34,50 @@ resource "aws_instance" "f5_bigip" {
   tags = {
     Name = format("%s-%d", var.prefix, count.index)
   }
+
+  connection {
+    type        = "ssh"
+    user        = "admin"
+    private_key = file(var.ec2_private_key)
+    host        = self.public_ip
+  }
+  provisioner "local-exec" {
+    command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=20 -v admin@${self.public_dns} 'modify auth user admin password \"${random_string.password.result}\"'"
+  }
+
+  # enable bash in order to use Terraform primitives
+  provisioner "local-exec" {
+    command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 -v admin@${self.public_dns} 'modify auth user admin shell bash'"
+  }
+
+  #
+  # download and install AS3 and Declarative Onboarding
+  #
+  provisioner "file" {
+    content       = "${data.template_file.vm_onboard.rendered}"
+    destination   = "/var/tmp/onboard.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /var/tmp/onboard.sh",
+      "/var/tmp/onboard.sh"
+    ]
+  }
+
+
+}
+
+data "template_file" "vm_onboard" {
+  template = "${file("${path.module}/onboard.tpl")}"
+
+  vars = {
+    uname        	              = "admin"
+    upassword        	          = "${random_string.password.result}"
+    DO_onboard_URL              = "${var.DO_onboard_URL}"
+    AS3_URL		                  = "${var.AS3_URL}"
+    libs_dir		                = "${var.libs_dir}"
+    onboard_log		              = "${var.onboard_log}"
+    management_interface_delay  = "${var.waitformgmtintf}"
+  }
 }

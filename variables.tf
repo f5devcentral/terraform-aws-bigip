@@ -27,6 +27,11 @@ variable "ec2_key_name" {
   type        = string
 }
 
+variable "ec2_private_key" {
+  description = "Private key to authenticate to ec2_key_name"
+  type        = string
+}
+
 variable "vpc_security_group_ids" {
   description = "AWS VPC Security Group id"
   type        = list
@@ -54,4 +59,28 @@ variable "mgmt_eip" {
   description = "Enable an Elastic IP address on the management interface"
   type        = bool
   default     = true
+}
+
+## Please check and update the latest DO URL from https://github.com/F5Networks/f5-declarative-onboarding/releases
+# always point to a specific version in order to avoid inadvertent configuration inconsistency
+variable DO_onboard_URL	{ 
+  default = "https://github.com/F5Networks/f5-declarative-onboarding/releases/download/v1.7.0/f5-declarative-onboarding-1.7.0-3.noarch.rpm" 
+}
+## Please check and update the latest AS3 URL from https://github.com/F5Networks/f5-appsvcs-extension/releases/latest 
+# always point to a specific version in order to avoid inadvertent configuration inconsistency
+variable AS3_URL {
+  default = "https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.14.0/f5-appsvcs-3.14.0-4.noarch.rpm" 
+}
+
+variable "libs_dir" {
+  default = "/config/cloud/aws/node_modules"
+}
+
+variable onboard_log { 
+  default = "/var/log/startup-script.log" 
+}
+
+variable "waitformgmtintf"{
+  default = 120
+  description = "the duration in seconds to wait for the bigip management interface to become available"
 }
