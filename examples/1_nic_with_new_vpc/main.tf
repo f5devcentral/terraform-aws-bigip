@@ -96,6 +96,3 @@ locals {
   allowed_mgmt_cidr = "0.0.0.0/0"
   allowed_app_cidr  = "0.0.0.0/0"
 }
-
-variable "ssh_key_name" {}
-variable "private_key_path" {}
