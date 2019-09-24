@@ -44,4 +44,9 @@ resource "aws_instance" "f5_bigip" {
   provisioner "local-exec" {
     command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=20 -v admin@${self.public_dns} 'modify auth user admin password \"${random_string.password.result}\"'"
   }
+
+  # enable bash in order to use Terraform primitives
+  provisioner "local-exec" {
+    command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 -v admin@${self.public_dns} 'modify auth user admin shell bash'"
+  }
 }
