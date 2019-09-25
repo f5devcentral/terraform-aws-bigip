@@ -32,11 +32,6 @@ variable "ec2_private_key" {
   type        = string
 }
 
-variable "vpc_security_group_ids" {
-  description = "AWS VPC Security Group id"
-  type        = list
-}
-
 variable "vpc_public_subnet_ids" {
   description = "AWS VPC Subnet id for the public subnet"
   type        = list
@@ -61,9 +56,28 @@ variable "mgmt_eip" {
   default     = true
 }
 
+variable "mgmt_subnet_security_group_ids" {
+  description = "AWS Security Group ID for BIG-IP management interface"
+  type        = list
+  default     = []
+}
+
+variable "public_subnet_security_group_ids" {
+  description = "AWS Security Group ID for BIG-IP public interface"
+  type        = list
+  default     = []
+}
+
+variable "private_subnet_security_group_ids" {
+  description = "AWS Security Group ID for BIG-IP private interface"
+  type        = list
+  default     = []
+}
+
+
 ## Please check and update the latest DO URL from https://github.com/F5Networks/f5-declarative-onboarding/releases
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
-variable DO_onboard_URL {
+variable DO_URL {
   description = "URL to download the BIG-IP Declarative Onboarding module"
   type        = string
   default     = "https://github.com/F5Networks/f5-declarative-onboarding/releases/download/v1.7.0/f5-declarative-onboarding-1.7.0-3.noarch.rpm"
@@ -86,15 +100,4 @@ variable onboard_log {
   description = "Directory on the BIG-IP to store the cloud-init logs"
   type        = string
   default     = "/var/log/startup-script.log"
-}
-
-variable "waitformgmtintf" {
-  description = "The duration in seconds to wait for the bigip management interface to become available"
-  type        = number
-  default     = 120
-}
-
-variable "private_key_path" {
-  description = "The path to the Private Key used to SSH into the deployed EC2 instances"
-  type        = string
 }

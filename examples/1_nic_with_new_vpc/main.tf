@@ -81,15 +81,14 @@ module bigip {
   )
   f5_instance_count = length(local.azs)
   ec2_key_name      = local.ec2_key_name
-  ec2_private_key   = "${path.module}/${local.private_key_path}"
-  vpc_security_group_ids = [
+  ec2_private_key   = local.private_key_path
+  mgmt_subnet_security_group_ids = [
     module.web_server_sg.this_security_group_id,
     module.web_server_secure_sg.this_security_group_id,
     module.ssh_secure_sg.this_security_group_id,
     module.bigip_mgmt_secure_sg.this_security_group_id
   ]
   vpc_mgmt_subnet_ids = module.vpc.public_subnets
-  private_key_path    = local.private_key_path
 }
 
 locals {

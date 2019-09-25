@@ -21,19 +21,39 @@ resource "random_string" "password" {
 }
 
 # 
-# Create Public Netowrk Interfaces
+# Create Management Network Interfaces
 #
-resource "aws_network_interface" "public" {
-  count     = length(var.vpc_public_subnet_ids)
-  subnet_id = var.vpc_public_subnet_ids[count.index]
+resource "aws_network_interface" "mgmt" {
+  count           = length(var.vpc_mgmt_subnet_ids)
+  subnet_id       = var.vpc_mgmt_subnet_ids[count.index]
+  security_groups = var.mgmt_subnet_security_group_ids
+}
+
+#
+# add an elastic IP to the BIG-IP management interface
+#
+resource "aws_eip" "mgmt" {
+  count             = var.mgmt_eip ? length(var.vpc_mgmt_subnet_ids) : 0
+  network_interface = aws_network_interface.mgmt[count.index].id
+  vpc               = true
 }
 
 # 
-# Create Private Netowrk Interfaces
+# Create Public Network Interfaces
+#
+resource "aws_network_interface" "public" {
+  count           = length(var.vpc_public_subnet_ids)
+  subnet_id       = var.vpc_public_subnet_ids[count.index]
+  security_groups = var.public_subnet_security_group_ids
+}
+
+# 
+# Create Private Network Interfaces
 #
 resource "aws_network_interface" "private" {
-  count     = length(var.vpc_private_subnet_ids)
-  subnet_id = var.vpc_private_subnet_ids[count.index]
+  count           = length(var.vpc_private_subnet_ids)
+  subnet_id       = var.vpc_private_subnet_ids[count.index]
+  security_groups = var.private_subnet_security_group_ids
 }
 
 #
@@ -45,38 +65,61 @@ resource "aws_instance" "f5_bigip" {
   instance_type = var.ec2_instance_type
   ami           = data.aws_ami.f5_ami.id
 
-  key_name               = var.ec2_key_name
-  vpc_security_group_ids = var.vpc_security_group_ids
-
-  # there should be a unique subnet for each targeted BIG-IP
-  # so var.f5_instance_count == length(var.vpc_mgmt_subnet_ids)
-  subnet_id = element(var.vpc_mgmt_subnet_ids, count.index)
-
-  # boolean expression to determine if an EIP should be added
-  # to the BIG-IP management interface
-  associate_public_ip_address = var.mgmt_eip
+  key_name = var.ec2_key_name
 
   root_block_device {
     delete_on_termination = true
   }
 
+  # set the mgmt interface 
   dynamic "network_interface" {
-    for_each = aws_network_interface.public[0]
+    for_each = toset([aws_network_interface.mgmt[count.index].id])
 
     content {
-      network_interface_id = network_interface.id
+      network_interface_id = network_interface.value
+      device_index         = 0
+    }
+  }
+
+  # set the public interface only if an interface is defined
+  dynamic "network_interface" {
+    for_each = length(aws_network_interface.public) > count.index ? toset([aws_network_interface.public[count.index].id]) : toset([])
+
+    content {
+      network_interface_id = network_interface.value
       device_index         = 1
     }
   }
 
-  tags = {
-    Name = format("%s-%d", var.prefix, count.index)
+
+  # set the private interface only if an interface is defined
+  dynamic "network_interface" {
+    for_each = length(aws_network_interface.private) > count.index ? toset([aws_network_interface.private[count.index].id]) : toset([])
+
+    content {
+      network_interface_id = network_interface.value
+      device_index         = 2
+    }
   }
 
+  # build user_data file from template
+  user_data = templatefile(
+    "${path.module}/f5_onboard.tmpl",
+    {
+      DO_URL      = var.DO_URL,
+      AS3_URL     = var.AS3_URL,
+      libs_dir    = var.libs_dir,
+      onboard_log = var.onboard_log,
+    }
+  )
+
+  # 
+  # Connect to the BIG-IP
+  #
   connection {
     type        = "ssh"
     user        = "admin"
-    private_key = file(var.private_key_path)
+    private_key = file(var.ec2_private_key)
     host        = self.public_ip
   }
 
@@ -84,45 +127,64 @@ resource "aws_instance" "f5_bigip" {
   # set the BIG-IP password
   #
   provisioner "local-exec" {
-    command = "ssh -i ${var.private_key_path} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=20 admin@${self.public_dns} 'modify auth user admin password \"${random_string.password.result}\"'"
+    command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=20 admin@${self.public_dns} 'modify auth user admin password \"${random_string.password.result}\"'"
   }
 
   #
   # enable bash in order to use Terraform primitives
   #
   provisioner "local-exec" {
-    command = "ssh -i ${var.private_key_path} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 admin@${self.public_dns} 'modify auth user admin shell bash'"
+    command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 admin@${self.public_dns} 'modify auth user admin shell bash'"
   }
 
-  #
-  # download and install AS3 and Declarative Onboarding
-  #
-  provisioner "file" {
-    content     = "${data.template_file.vm_onboard.rendered}"
-    destination = "/var/tmp/onboard.sh"
-  }
+  depends_on = [aws_eip.mgmt]
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /var/tmp/onboard.sh",
-      "/var/tmp/onboard.sh"
-    ]
+  tags = {
+    Name = format("%s-%d", var.prefix, count.index)
   }
 }
 
-# 
-# build the DO declaration
-# 
-data "template_file" "vm_onboard" {
-  template = "${file("${path.module}/onboard.tpl")}"
+# resource "null_resource" "onboard" {
+#   for_each = aws_instance.f5_bigip
+#   # 
+#   # Connect to the BIG-IP
+#   #
+#   connection {
+#     type        = "ssh"
+#     user        = "admin"
+#     private_key = file(var.ec2_private_key)
+#     host        = each.public_ip
+#   }
 
-  vars = {
-    uname                      = "admin"
-    upassword                  = "${random_string.password.result}"
-    DO_onboard_URL             = "${var.DO_onboard_URL}"
-    AS3_URL                    = "${var.AS3_URL}"
-    libs_dir                   = "${var.libs_dir}"
-    onboard_log                = "${var.onboard_log}"
-    management_interface_delay = "${var.waitformgmtintf}"
-  }
-}
+#   #
+#   # set the BIG-IP password
+#   #
+#   provisioner "local-exec" {
+#     command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=20 admin@${each.public_dns} 'modify auth user admin password \"${random_string.password.result}\"'"
+#   }
+
+#   #
+#   # enable bash in order to use Terraform primitives
+#   #
+#   provisioner "local-exec" {
+#     command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 admin@${each.public_dns} 'modify auth user admin shell bash'"
+#   }
+
+#   #
+#   # download and install AS3 and Declarative Onboarding
+#   #
+#   provisioner "file" {
+#     content     = "${data.template_file.vm_onboard.rendered}"
+#     destination = "/var/tmp/onboard.sh"
+#   }
+
+#   # 
+#   # run the onboard script
+#   #
+#   provisioner "remote-exec" {
+#     inline = [
+#       "chmod +x /var/tmp/onboard.sh",
+#       "/var/tmp/onboard.sh"
+#     ]
+#   }
+# }

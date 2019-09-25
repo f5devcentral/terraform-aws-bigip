@@ -85,24 +85,30 @@ module bigip {
   )
   f5_instance_count = length(local.azs)
   ec2_key_name      = local.ec2_key_name
-  ec2_private_key   = "${path.module}/${local.private_key_path}"
-  vpc_security_group_ids = [
-    module.web_server_sg.this_security_group_id,
+  ec2_private_key   = local.private_key_path
+  mgmt_subnet_security_group_ids = [
     module.web_server_secure_sg.this_security_group_id,
     module.ssh_secure_sg.this_security_group_id
+  ]
+
+  public_subnet_security_group_ids = [
+    module.web_server_sg.this_security_group_id,
+    module.web_server_secure_sg.this_security_group_id
+  ]
+
+  private_subnet_security_group_ids = [
+    module.vpc.default_security_group_id
   ]
 
   vpc_public_subnet_ids  = module.vpc.public_subnets
   vpc_private_subnet_ids = module.vpc.private_subnets
   vpc_mgmt_subnet_ids    = module.vpc.database_subnets
-
-  private_key_path = local.private_key_path
 }
 
 locals {
   prefix            = "tf-aws-bigip"
   region            = "us-east-2"
-  azs               = ["us-east-2a", "us-east-2b"]
+  azs               = [format("%s%s", local.region, "a"), format("%s%s", local.region, "b")]
   cidr              = "10.0.0.0/16"
   allowed_mgmt_cidr = "0.0.0.0/0"
   allowed_app_cidr  = "0.0.0.0/0"
