@@ -2,12 +2,25 @@ provider "aws" {
   region = local.region
 }
 
+#
+# Variable for the EC2 Key 
+# Set via CLI or via terraform.tfvars file
+#
+variable "ec2_key_name" {
+  description = "AWS EC2 Key name for SSH access"
+  type        = string
+}
+
+#
 # Create a random id
+#
 resource "random_id" "id" {
   byte_length = 2
 }
 
+#
 # Create the VPC 
+#
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
@@ -30,6 +43,9 @@ module "vpc" {
   }
 }
 
+#
+# Create a security group for port 80 traffic
+#
 module "web_server_sg" {
   source = "terraform-aws-modules/security-group/aws//modules/http-80"
 
@@ -40,6 +56,9 @@ module "web_server_sg" {
   ingress_cidr_blocks = [local.allowed_app_cidr]
 }
 
+#
+# Create a security group for port 443 traffic
+#
 module "web_server_secure_sg" {
   source = "terraform-aws-modules/security-group/aws//modules/https-443"
 
@@ -50,6 +69,9 @@ module "web_server_secure_sg" {
   ingress_cidr_blocks = [local.allowed_app_cidr]
 }
 
+#
+# Create a security group for port 8443 traffic
+#
 module "bigip_mgmt_secure_sg" {
   source = "terraform-aws-modules/security-group/aws//modules/https-8443"
 
@@ -60,6 +82,9 @@ module "bigip_mgmt_secure_sg" {
   ingress_cidr_blocks = [local.allowed_mgmt_cidr]
 }
 
+#
+# Create a security group for SSH traffic
+#
 module "ssh_secure_sg" {
   source = "terraform-aws-modules/security-group/aws//modules/ssh"
 
@@ -70,7 +95,9 @@ module "ssh_secure_sg" {
   ingress_cidr_blocks = [local.allowed_mgmt_cidr]
 }
 
+#
 # Create BIG-IP
+#
 module bigip {
   source = "../../"
 
@@ -80,8 +107,7 @@ module bigip {
     random_id.id.hex
   )
   f5_instance_count = length(local.azs)
-  ec2_key_name      = local.ec2_key_name
-  ec2_private_key   = local.private_key_path
+  ec2_key_name      = var.ec2_key_name
   mgmt_subnet_security_group_ids = [
     module.web_server_sg.this_security_group_id,
     module.web_server_secure_sg.this_security_group_id,
@@ -91,6 +117,9 @@ module bigip {
   vpc_mgmt_subnet_ids = module.vpc.public_subnets
 }
 
+#
+# Variables used by this example
+#
 locals {
   prefix            = "tf-aws-bigip"
   region            = "us-east-2"
@@ -98,6 +127,4 @@ locals {
   cidr              = "10.0.0.0/16"
   allowed_mgmt_cidr = "0.0.0.0/0"
   allowed_app_cidr  = "0.0.0.0/0"
-  ec2_key_name      = "cody-key"
-  private_key_path  = "~/.ssh/cody-key.pem"
 }

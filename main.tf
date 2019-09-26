@@ -110,32 +110,9 @@ resource "aws_instance" "f5_bigip" {
       AS3_URL     = var.AS3_URL,
       libs_dir    = var.libs_dir,
       onboard_log = var.onboard_log,
+      PWD         = random_string.password.result
     }
   )
-
-  # 
-  # Connect to the BIG-IP
-  #
-  connection {
-    type        = "ssh"
-    user        = "admin"
-    private_key = file(var.ec2_private_key)
-    host        = self.public_ip
-  }
-
-  #
-  # set the BIG-IP password
-  #
-  provisioner "local-exec" {
-    command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=20 admin@${self.public_dns} 'modify auth user admin password \"${random_string.password.result}\"'"
-  }
-
-  #
-  # enable bash in order to use Terraform primitives
-  #
-  provisioner "local-exec" {
-    command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 admin@${self.public_dns} 'modify auth user admin shell bash'"
-  }
 
   depends_on = [aws_eip.mgmt]
 
@@ -143,48 +120,3 @@ resource "aws_instance" "f5_bigip" {
     Name = format("%s-%d", var.prefix, count.index)
   }
 }
-
-# resource "null_resource" "onboard" {
-#   for_each = aws_instance.f5_bigip
-#   # 
-#   # Connect to the BIG-IP
-#   #
-#   connection {
-#     type        = "ssh"
-#     user        = "admin"
-#     private_key = file(var.ec2_private_key)
-#     host        = each.public_ip
-#   }
-
-#   #
-#   # set the BIG-IP password
-#   #
-#   provisioner "local-exec" {
-#     command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=20 admin@${each.public_dns} 'modify auth user admin password \"${random_string.password.result}\"'"
-#   }
-
-#   #
-#   # enable bash in order to use Terraform primitives
-#   #
-#   provisioner "local-exec" {
-#     command = "ssh -i ${var.ec2_private_key} -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ConnectionAttempts=10 admin@${each.public_dns} 'modify auth user admin shell bash'"
-#   }
-
-#   #
-#   # download and install AS3 and Declarative Onboarding
-#   #
-#   provisioner "file" {
-#     content     = "${data.template_file.vm_onboard.rendered}"
-#     destination = "/var/tmp/onboard.sh"
-#   }
-
-#   # 
-#   # run the onboard script
-#   #
-#   provisioner "remote-exec" {
-#     inline = [
-#       "chmod +x /var/tmp/onboard.sh",
-#       "/var/tmp/onboard.sh"
-#     ]
-#   }
-# }
