@@ -8,6 +8,11 @@ output "mgmt_public_dns" {
   value = aws_eip.mgmt[*].public_dns
 }
 
+# BIG-IP Management Port
+output "mgmt_port" {
+  value = length(var.vpc_public_subnet_ids) > 0 ? "443" : "8443"
+}
+
 # BIG-IP Password
 output "password" {
   value = random_string.password.result
