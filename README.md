@@ -14,8 +14,7 @@ module bigip {
 
   prefix            = "bigip"
   f5_instance_count = 1
-  ec2_key_name      = "cody-key"
-  ec2_private_key   = "~/.ssh/cody-key.pem"
+  ec2_key_name      = "my-key"
   mgmt_subnet_security_group_ids = [sg-01234567890abcdef]
   vpc_mgmt_subnet_ids = [subnet-01234567890abcdef]
 }
@@ -27,8 +26,7 @@ module bigip {
 
   prefix            = "bigip"
   f5_instance_count = 1
-  ec2_key_name      = "cody-key"
-  ec2_private_key   = "~/.ssh/cody-key.pem"
+  ec2_key_name      = "my-key"
   mgmt_subnet_security_group_ids = [sg-01234567890abcdef]
   public_subnet_security_group_ids = [sg-01234567890ghijkl]
   private_subnet_security_group_ids = [sg-01234567890mnopqr]

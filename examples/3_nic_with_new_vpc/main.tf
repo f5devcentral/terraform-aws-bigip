@@ -85,7 +85,6 @@ module bigip {
   )
   f5_instance_count = length(local.azs)
   ec2_key_name      = local.ec2_key_name
-  ec2_private_key   = local.private_key_path
   mgmt_subnet_security_group_ids = [
     module.web_server_secure_sg.this_security_group_id,
     module.ssh_secure_sg.this_security_group_id
@@ -113,5 +112,4 @@ locals {
   allowed_mgmt_cidr = "0.0.0.0/0"
   allowed_app_cidr  = "0.0.0.0/0"
   ec2_key_name      = "cody-key"
-  private_key_path  = "~/.ssh/cody-key.pem"
 }

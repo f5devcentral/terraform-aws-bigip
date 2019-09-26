@@ -74,6 +74,9 @@ do
   sleep 10
 done
 
+### SET ADMIN PASSWORD
+tmsh modify auth user admin password ${PWD}
+
 ### DOWNLOAD ONBOARDING PKGS
 # Could be pre-packaged or hosted internally
 
@@ -106,6 +109,9 @@ restcurl -X POST "shared/iapp/package-management-tasks" -d $DATA
 
 date
 echo "FINISHED STARTUP SCRIPT"
+
+### Clean up
+rm /config/cloud/startup-script.sh 
 EOF
 
 

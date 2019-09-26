@@ -27,11 +27,6 @@ variable "ec2_key_name" {
   type        = string
 }
 
-variable "ec2_private_key" {
-  description = "Private key to authenticate to ec2_key_name"
-  type        = string
-}
-
 variable "vpc_public_subnet_ids" {
   description = "AWS VPC Subnet id for the public subnet"
   type        = list
