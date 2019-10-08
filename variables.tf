@@ -19,7 +19,7 @@ variable "f5_instance_count" {
 variable "ec2_instance_type" {
   description = "AWS EC2 instance type"
   type        = string
-  default     = "m5.large"
+  default     = "m4.large"
 }
 
 variable "ec2_key_name" {
