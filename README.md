@@ -2,7 +2,7 @@
 Terraform module to deploy an F5 BIG-IP in AWS.  This module currently supports 1 and 3 nic deployments using the AWS Marketplace PAYG license.
 
 **NOTE:** You will need to accept the AWS Marketplace offer for your selected BIG-IP AMI.  
-**NOTE:** This code is provided for demonstration purposes and is not intentded to be used for production deployments. 
+**NOTE:** This code is provided for demonstration purposes and is not intended to be used for production deployments. 
 
 ## Terraform Version
 This modules supports Terraform 0.12 and higher
