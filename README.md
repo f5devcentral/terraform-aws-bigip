@@ -11,6 +11,7 @@ This modules supports Terraform 0.12 and higher
 ```hcl
 module bigip {
   source = "f5devcentral/bigip/aws"
+  version = "0.1.2"
 
   prefix            = "bigip"
   f5_instance_count = 1
@@ -23,6 +24,7 @@ module bigip {
 ```hcl
 module bigip {
   source = "f5devcentral/bigip/aws"
+  version = "0.1.2"
 
   prefix            = "bigip"
   f5_instance_count = 1
