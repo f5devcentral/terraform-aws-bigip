@@ -57,13 +57,25 @@ resource "aws_network_interface" "private" {
 }
 
 #
+# Create Secret Store and Store BIG-IP Password
+#
+resource "aws_secretsmanager_secret" "bigip" {
+  name = format("%s-bigip-secret", var.prefix)
+}
+resource "aws_secretsmanager_secret_version" "bigip-pwd" {
+  secret_id     = aws_secretsmanager_secret.bigip.id
+  secret_string = random_string.password.result
+}
+
+#
 # Deploy BIG-IP
 #
 resource "aws_instance" "f5_bigip" {
   # determine the number of BIG-IPs to deploy
-  count         = var.f5_instance_count
-  instance_type = var.ec2_instance_type
-  ami           = data.aws_ami.f5_ami.id
+  count                = var.f5_instance_count
+  instance_type        = var.ec2_instance_type
+  ami                  = data.aws_ami.f5_ami.id
+  iam_instance_profile = aws_iam_instance_profile.bigip_profile.name
 
   key_name = var.ec2_key_name
 
@@ -109,8 +121,7 @@ resource "aws_instance" "f5_bigip" {
       DO_URL      = var.DO_URL,
       AS3_URL     = var.AS3_URL,
       libs_dir    = var.libs_dir,
-      onboard_log = var.onboard_log,
-      PWD         = random_string.password.result
+      onboard_log = var.onboard_log
     }
   )
 

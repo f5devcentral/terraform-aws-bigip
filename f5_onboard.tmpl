@@ -74,8 +74,32 @@ do
   sleep 10
 done
 
-### SET ADMIN PASSWORD
-tmsh modify auth user admin password ${PWD}
+### SET ADMIN PASSWORD FROM AWS SECRETS MANAGER
+role_name=$( curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/ )
+payload=`curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/$${role_name}`
+export AccessKeyId=`echo $payload | jq -r ".AccessKeyId"`
+export SecretAccessKey=`echo $payload | jq -r ".SecretAccessKey"`
+export Token=`echo $payload | jq -r ".Token"`
+export Domain=`curl -s http://169.254.169.254/latest/meta-data/services/domain`
+export Region=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone| sed s/.$//`
+
+## BUILD AWS SIGNATURE V4 SIGNING REQUEST
+# aws_date=`date +'%Y%m%dT%H%M%SZ'`
+# aws_short_date=`date +'%Y%m%d'`
+# HashPayload=`echo -n '{"SecretId":"tf-aws-bigip-bigip-1-nic_with_new_vpc-4959-bigip-secret"}' | sha256sum | sed s/...$//`
+# CanonicalRequest="POST\n/\n\nhost:secretsmanager.$${Region}.$${Domain}\ndate: $${aws_date}\nhost;date\n$${HashPayload}"
+# HashedCanonicalRequest=`echo CanonicalRequest | sha256sum | sed s/...$//`
+# StringToSign ="AWS4-HMAC-SHA256\n$${aws_date}\n$${aws_short_date}/$${Region}/secretsmanager/aws4_request20150830/us-east-1/iam/aws4_request\n$${CanonicalRequest}"
+# kDate=`echo "AWS4${SecretAccessKey}${aws_short_date}" | sha256sum | sed s/...$//`
+# kRegion=`echo "${kDate}${Region}" | sha256sum | sed s/...$//`
+# kService=`echo "${kRegion}secretsmanager" | sha256sum | sed s/...$//`
+# kSigning=`echo "${kService}aws4_request" | sha256sum | sed s/...$//`
+# curl -v -X \
+# -H "host: secretsmanager.${Region}.${Domain}" \
+# -H "x-amz-date: ${aws_date}" \
+# -H "Authorization: AWS4-HMAC-SHA256 Credential=${credential}, SignedHeaders=host;x-amz-date, Signature=$signature" \
+# -d '{"SecretId":"tf-aws-bigip-bigip-1-nic_with_new_vpc-4959-bigip-secret"}' \
+# https://secretsmanager.$Region.$Domain
 
 ### DOWNLOAD ONBOARDING PKGS
 # Could be pre-packaged or hosted internally

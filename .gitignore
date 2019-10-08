@@ -10,3 +10,6 @@
 
 # Terraform crash log
 **/crash.log
+
+# User Data Test
+test.sh
