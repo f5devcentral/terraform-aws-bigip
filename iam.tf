@@ -19,22 +19,6 @@ resource "aws_iam_role" "bigip_role" {
   name               = format("%s-bigip-role", var.prefix)
   assume_role_policy = data.aws_iam_policy_document.bigip_role.json
 
-  #   assume_role_policy = <<EOF
-  # {
-  #   "Version": "2012-10-17",
-  #   "Statement": [
-  #     {
-  #       "Action": "sts:AssumeRole",
-  #       "Principal": {
-  #         "Service": "ec2.amazonaws.com"
-  #       },
-  #       "Effect": "Allow",
-  #       "Sid": ""
-  #     }
-  #   ]
-  # }
-  # EOF
-
   tags = {
     tag-key = "tag-value"
   }
@@ -53,7 +37,7 @@ data "aws_iam_policy_document" "bigip_policy" {
     ]
 
     resources = [
-      "arn:aws:secretsmanager:*:*:secret:${aws_secretsmanager_secret_version.bigip-pwd.arn}"
+      aws_secretsmanager_secret_version.bigip-pwd.arn
     ]
   }
 }
