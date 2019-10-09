@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"errors"
+	"encoding/base64"
 	"fmt"
 	"testing"
 	"net/http"
@@ -11,7 +12,81 @@ import (
 	"os"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
+
+// AWS Code snippit to obtain secret
+func getSecret(secretName string, region string) (password string, err error) {
+	// secretName := "terraform-aws-bigip-1nic-bigip-secret-79ea"
+	// region := "us-east-2"
+
+	// Create a session
+	sess:= session.Must(session.NewSession(&aws.Config{
+		Region : aws.String(region),
+	}))
+
+	//Create a Secrets Manager client
+	svc := secretsmanager.New(sess)
+	input := &secretsmanager.GetSecretValueInput{
+		SecretId:     aws.String(secretName),
+		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified
+	}
+
+	// In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
+	// See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+
+	result, err := svc.GetSecretValue(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+				case secretsmanager.ErrCodeDecryptionFailure:
+				// Secrets Manager can't decrypt the protected secret text using the provided KMS key.
+				fmt.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
+
+				case secretsmanager.ErrCodeInternalServiceError:
+				// An error occurred on the server side.
+				fmt.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
+
+				case secretsmanager.ErrCodeInvalidParameterException:
+				// You provided an invalid value for a parameter.
+				fmt.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
+
+				case secretsmanager.ErrCodeInvalidRequestException:
+				// You provided a parameter value that is not valid for the current state of the resource.
+				fmt.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
+
+				case secretsmanager.ErrCodeResourceNotFoundException:
+				// We can't find the resource that you asked for.
+				fmt.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+		}
+		return "", err
+	}
+
+	// Decrypts secret using the associated KMS CMK.
+	// Depending on whether the secret is a string or binary, one of these fields will be populated.
+	var secretString, decodedBinarySecret string
+	if result.SecretString != nil {
+		secretString = *result.SecretString
+		return secretString, nil
+	} else {
+		decodedBinarySecretBytes := make([]byte, base64.StdEncoding.DecodedLen(len(result.SecretBinary)))
+		len, err := base64.StdEncoding.Decode(decodedBinarySecretBytes, result.SecretBinary)
+		if err != nil {
+			fmt.Println("Base64 Decode Error:", err)
+			return "", err
+		}
+		decodedBinarySecret = string(decodedBinarySecretBytes[:len])
+		return decodedBinarySecret, nil
+	}
+}
 
 func testAnOToolchain(url string, pwd string, client *retryablehttp.Client) (int, error) {
 	req, err := retryablehttp.NewRequest("GET", url, nil)
@@ -44,18 +119,23 @@ func Test1NicExample(t *testing.T) {
 	// Deploy BIG-IP
 	terraform.InitAndApply(t, opts)
 
-	// Sleep for 3 minutes (time to boot BIG-IP) so we do not overwhelm restnoded while installing A&O Toolchain
-	fmt.Println("Sleeping for 3 minutes so A&O Toolchain can be installed")
-	time.Sleep(180 * time.Second)
-
 	// Get the BIG-IP management IP address
 	bigipMgmtDNS := terraform.OutputList(t, opts, "bigip_mgmt_dns")
 	bigipMgmtPort := terraform.OutputRequired(t, opts, "bigip_mgmt_port")
-	bigipPwd := terraform.OutputRequired(t, opts, "password")
+	awsSecretmanagerSecretName := terraform.OutputRequired(t, opts, "aws_secretmanager_secret_name")
+	bigipPwd, err := getSecret(awsSecretmanagerSecretName, os.Getenv("AWS_DEFAULT_REGION")) 
+
+	if err != nil || bigipPwd == "" {
+		t.Errorf("CAN NOT OBTAIN BIG-IP PASSWORD FROM SECRET MANAGER")
+	}
+
+	// Sleep for 4 minutes (time to boot BIG-IP) so we do not overwhelm restnoded while installing A&O Toolchain
+	fmt.Println("Sleeping for 4 minutes so A&O Toolchain can be installed")
+	time.Sleep(240 * time.Second)
 
 	const minRetryTime = 1   // seconds
 	const maxRetryTime = 120 // seconds
-	const maxRetryCount = 10
+	const maxRetryCount = 4
 	const attemptTimeoutInit = 2 // seconds
 	const doInfoURL = "/mgmt/shared/declarative-onboarding/info"
 	const as3InfoURL = "/mgmt/shared/appsvcs/info"

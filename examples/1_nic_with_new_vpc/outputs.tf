@@ -22,3 +22,8 @@ output "password" {
   value     = random_password.password
   sensitive = true
 }
+
+# BIG-IP Password Secret name
+output "aws_secretmanager_secret_name" {
+  value = aws_secretsmanager_secret.bigip.name
+}
