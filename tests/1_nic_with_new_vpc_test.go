@@ -38,7 +38,11 @@ func Test1NicExample(t *testing.T) {
 	// // Get the BIG-IP management IP address
 	// bigipMgmtDNS := terraform.OutputRequired(t, opts, "bigip_mgmt_dns")
 	// bigipMgmtPort := terraform.OutputRequired(t, opts, "bigip_mgmt_port")
-	bigipMgmtDNS := "ec2-18-223-69-232.us-east-2.compute.amazonaws.com"
+	// bigipMgmtDNS := "ec2-18-223-69-232.us-east-2.compute.amazonaws.com"
+	bigipMgmtDNS := [2]string{
+		"ec2-18-223-69-232.us-east-2.compute.amazonaws.com",
+		"ec2-3-130-27-98.us-east-2.compute.amazonaws.com",
+	}
 	bigipMgmtPort := "8443"
 	bigipPwd := "W14cgviThPNri2B2"
 
@@ -85,19 +89,22 @@ func Test1NicExample(t *testing.T) {
 		return false, nil
 	}
 
-	// Check DO info page
-	DOurl := fmt.Sprintf("https://%s:%s%s", bigipMgmtDNS, bigipMgmtPort, doInfoURL)
-	doresp, err := testAnOToolchain(DOurl, bigipPwd, rclient)
-	if err != nil {
-		t.Errorf("DO REQUEST FAILED")
-	}
-	fmt.Println(doresp)
+	// Check the A&O Toolchain for each BIG-IP
+	for _, bigip := range bigipMgmtDNS {
+		// Check DO info page
+		DOurl := fmt.Sprintf("https://%s:%s%s", bigip, bigipMgmtPort, doInfoURL)
+		doresp, err := testAnOToolchain(DOurl, bigipPwd, rclient)
+		if err != nil {
+			t.Errorf("DO REQUEST FAILED")
+		}
+		fmt.Println(doresp)
 
-	// // Check AS3 info page
-	AS3url := fmt.Sprintf("https://%s:%s%s", bigipMgmtDNS, bigipMgmtPort, as3InfoURL)
-	as3resp, err := testAnOToolchain(AS3url, bigipPwd, rclient)
-	if err != nil {
-		t.Errorf("DO REQUEST FAILED")
+		// Check AS3 info page
+		AS3url := fmt.Sprintf("https://%s:%s%s", bigip, bigipMgmtPort, as3InfoURL)
+		as3resp, err := testAnOToolchain(AS3url, bigipPwd, rclient)
+		if err != nil {
+			t.Errorf("DO REQUEST FAILED")
+		}
+		fmt.Println(as3resp)
 	}
-	fmt.Println(as3resp)
 }
