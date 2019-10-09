@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"crypto/tls"
 	"time"
+	"os"
 	"github.com/hashicorp/go-retryablehttp"
-	// "github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
 func testAnOToolchain(url string, pwd string, client *retryablehttp.Client) (int, error) {
@@ -23,28 +24,34 @@ func testAnOToolchain(url string, pwd string, client *retryablehttp.Client) (int
 	return resp.StatusCode, nil
 }
 
-
+// Test the BIG-IP 1 NIC example
+// Ensure your AWS credentials are set to the following environment vars:
+//		AWS_ACCESS_KEY_ID
+//      AWS_SECRET_ACCESS_KEY
+// Ensure you have defined the default AWS region in the following environment var:
+//      AWS_DEFAULT_REGION
 func Test1NicExample(t *testing.T) {
-	// opts := &terraform.Options{
-	// 	TerraformDir: "../examples/1_nic_with_new_vpc",
-	// }
+	opts := &terraform.Options{
+		TerraformDir: "../examples/1_nic_with_new_vpc",
+		Vars: map[string]interface{} {
+			"ec2_key_name": os.Getenv("ec2_key_name"),
+		},
+	}
 
 	// Clean up everything at the end of the test
-	// defer terraform.Destroy(t, opts)
+	defer terraform.Destroy(t, opts)
 
-	// // Deploy BIG-IP
-	// terraform.InitAndApply(t, opts)
+	// Deploy BIG-IP
+	terraform.InitAndApply(t, opts)
 
-	// // Get the BIG-IP management IP address
-	// bigipMgmtDNS := terraform.OutputRequired(t, opts, "bigip_mgmt_dns")
-	// bigipMgmtPort := terraform.OutputRequired(t, opts, "bigip_mgmt_port")
-	// bigipMgmtDNS := "ec2-18-223-69-232.us-east-2.compute.amazonaws.com"
-	bigipMgmtDNS := [2]string{
-		"ec2-18-223-69-232.us-east-2.compute.amazonaws.com",
-		"ec2-3-130-27-98.us-east-2.compute.amazonaws.com",
-	}
-	bigipMgmtPort := "8443"
-	bigipPwd := "W14cgviThPNri2B2"
+	// Sleep for 3 minutes (time to boot BIG-IP) so we do not overwhelm restnoded while installing A&O Toolchain
+	fmt.Println("Sleeping for 3 minutes so A&O Toolchain can be installed")
+	time.Sleep(180 * time.Second)
+
+	// Get the BIG-IP management IP address
+	bigipMgmtDNS := terraform.OutputList(t, opts, "bigip_mgmt_dns")
+	bigipMgmtPort := terraform.OutputRequired(t, opts, "bigip_mgmt_port")
+	bigipPwd := terraform.OutputRequired(t, opts, "password")
 
 	const minRetryTime = 1   // seconds
 	const maxRetryTime = 120 // seconds
@@ -52,9 +59,6 @@ func Test1NicExample(t *testing.T) {
 	const attemptTimeoutInit = 2 // seconds
 	const doInfoURL = "/mgmt/shared/declarative-onboarding/info"
 	const as3InfoURL = "/mgmt/shared/appsvcs/info"
-
-	// DOurl := fmt.Sprintf("https://%s:%s/mgmt/shared/declarative-onboarding/info", bigipMgmtDNS, bigipMgmtPort)
-	// AS3url := fmt.Sprintf("https://%s:%s/mgmt/shared/appsvcs/info", bigipMgmtDNS, bigipMgmtPort)
 
 	// since the BIG-IP is deployed with a self-signed cert, we need to ignore validation
 	tr := &http.Transport{
@@ -90,8 +94,10 @@ func Test1NicExample(t *testing.T) {
 	}
 
 	// Check the A&O Toolchain for each BIG-IP
+	// TODO: bigips is still not in the right format
 	for _, bigip := range bigipMgmtDNS {
 		// Check DO info page
+		fmt.Printf("CHECK DO FOR %s\n", bigip)
 		DOurl := fmt.Sprintf("https://%s:%s%s", bigip, bigipMgmtPort, doInfoURL)
 		doresp, err := testAnOToolchain(DOurl, bigipPwd, rclient)
 		if err != nil {
@@ -100,6 +106,7 @@ func Test1NicExample(t *testing.T) {
 		fmt.Println(doresp)
 
 		// Check AS3 info page
+		fmt.Printf("CHECK AS3 FOR %s\n", bigip)
 		AS3url := fmt.Sprintf("https://%s:%s%s", bigip, bigipMgmtPort, as3InfoURL)
 		as3resp, err := testAnOToolchain(AS3url, bigipPwd, rclient)
 		if err != nil {
