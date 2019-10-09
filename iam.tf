@@ -37,7 +37,7 @@ data "aws_iam_policy_document" "bigip_policy" {
     ]
 
     resources = [
-      aws_secretsmanager_secret_version.bigip-pwd.arn
+      data.aws_secretsmanager_secret.password.arn
     ]
   }
 }
@@ -47,19 +47,3 @@ resource "aws_iam_role_policy" "bigip_policy" {
   role   = aws_iam_role.bigip_role.id
   policy = data.aws_iam_policy_document.bigip_policy.json
 }
-
-#   #   policy = <<EOF
-#   # {
-#   #   "Version": "2012-10-17",
-#   #   "Statement": [
-#   #     {
-#   #       "Action": [
-#   #         "Action": "secretsmanager:GetSecretValue"
-#   #       ],
-#   #       "Effect": "Allow",
-#   #       "Resource": "arn:aws:secretsmanager:*:*:secret:${aws_secretsmanager_secret_version.bigip-pwd.arn}"
-#   #     }
-#   #   ]
-#   # }
-#   # EOF
-# }

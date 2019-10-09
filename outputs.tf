@@ -16,12 +16,6 @@ output "mgmt_port" {
   value       = length(var.vpc_public_subnet_ids) > 0 ? "443" : "8443"
 }
 
-# BIG-IP Password
-output "password" {
-  description = "BIG-IP password stored in AWS Secrets Manager"
-  value       = random_string.password.result
-  sensitive   = true
-}
 # Public Network Interface
 output "public_nic_ids" {
   description = "List of BIG-IP public network interface ids"

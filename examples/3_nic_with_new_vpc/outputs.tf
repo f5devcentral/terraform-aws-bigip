@@ -19,6 +19,6 @@ output "bigip_mgmt_port" {
 }
 # BIG-IP Password
 output "password" {
-  value     = module.bigip.password
+  value     = random_password.password
   sensitive = true
 }

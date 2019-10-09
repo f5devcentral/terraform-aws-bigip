@@ -69,6 +69,11 @@ variable "private_subnet_security_group_ids" {
   default     = []
 }
 
+variable "aws_secretmanager_secret_id" {
+  description = "AWS Secret Manager Secret ID that stores the BIG-IP password"
+  type        = string
+}
+
 
 ## Please check and update the latest DO URL from https://github.com/F5Networks/f5-declarative-onboarding/releases
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
