@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"net/http"
@@ -10,6 +11,17 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	// "github.com/gruntwork-io/terratest/modules/terraform"
 )
+
+func testAnOToolchain(url string, pwd string, client *retryablehttp.Client) (int, error) {
+	req, err := retryablehttp.NewRequest("GET", url, nil)
+	req.SetBasicAuth("admin", pwd)
+	resp, err := client.Do(req)
+	if err != nil || resp.StatusCode != 200 {
+		return 0,  errors.New("Request Failed")
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode, nil
+}
 
 
 func Test1NicExample(t *testing.T) {
@@ -75,23 +87,17 @@ func Test1NicExample(t *testing.T) {
 
 	// Check DO info page
 	DOurl := fmt.Sprintf("https://%s:%s%s", bigipMgmtDNS, bigipMgmtPort, doInfoURL)
-	doreq, err := retryablehttp.NewRequest("GET", DOurl, nil)
-	doreq.SetBasicAuth("admin", bigipPwd)
-	doresp, err := rclient.Do(doreq)
-	if err != nil || doresp.StatusCode != 200 {
+	doresp, err := testAnOToolchain(DOurl, bigipPwd, rclient)
+	if err != nil {
 		t.Errorf("DO REQUEST FAILED")
 	}
-	fmt.Println(doresp.StatusCode)
-	defer doresp.Body.Close()
+	fmt.Println(doresp)
 
-	// Check AS3 info page
+	// // Check AS3 info page
 	AS3url := fmt.Sprintf("https://%s:%s%s", bigipMgmtDNS, bigipMgmtPort, as3InfoURL)
-	as3req, err := retryablehttp.NewRequest("GET", AS3url, nil)
-	as3req.SetBasicAuth("admin", bigipPwd)
-	as3resp, err := rclient.Do(as3req)
-	if err != nil || as3resp.StatusCode != 200 {
-		t.Errorf("AS3 REQUEST FAILED")
+	as3resp, err := testAnOToolchain(AS3url, bigipPwd, rclient)
+	if err != nil {
+		t.Errorf("DO REQUEST FAILED")
 	}
-	fmt.Println(as3resp.StatusCode)
-	defer as3resp.Body.Close()
+	fmt.Println(as3resp)
 }
