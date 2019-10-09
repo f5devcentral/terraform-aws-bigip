@@ -1,18 +1,97 @@
 package test
 
 import (
+	"context"
+	"fmt"
 	"testing"
-
-	"github.com/gruntwork-io/terratest/modules/terraform"
+	"net/http"
+	"crypto/tls"
+	"time"
+	"github.com/hashicorp/go-retryablehttp"
+	// "github.com/gruntwork-io/terratest/modules/terraform"
 )
 
+
 func Test1NicExample(t *testing.T) {
-	opts := &terraform.Options{
-		TerraformDir: "../examples/1_nic_with_new_vpc",
-	}
+	// opts := &terraform.Options{
+	// 	TerraformDir: "../examples/1_nic_with_new_vpc",
+	// }
 
 	// Clean up everything at the end of the test
-	defer terraform.Destroy(t, opts)
+	// defer terraform.Destroy(t, opts)
 
-	terraform.InitAndApply(t, opts)
+	// // Deploy BIG-IP
+	// terraform.InitAndApply(t, opts)
+
+	// // Get the BIG-IP management IP address
+	// bigipMgmtDNS := terraform.OutputRequired(t, opts, "bigip_mgmt_dns")
+	// bigipMgmtPort := terraform.OutputRequired(t, opts, "bigip_mgmt_port")
+	bigipMgmtDNS := "ec2-18-223-69-232.us-east-2.compute.amazonaws.com"
+	bigipMgmtPort := "8443"
+	bigipPwd := "W14cgviThPNri2B2"
+
+	const minRetryTime = 1   // seconds
+	const maxRetryTime = 120 // seconds
+	const maxRetryCount = 10
+	const attemptTimeoutInit = 2 // seconds
+	const doInfoURL = "/mgmt/shared/declarative-onboarding/info"
+	const as3InfoURL = "/mgmt/shared/appsvcs/info"
+
+	// DOurl := fmt.Sprintf("https://%s:%s/mgmt/shared/declarative-onboarding/info", bigipMgmtDNS, bigipMgmtPort)
+	// AS3url := fmt.Sprintf("https://%s:%s/mgmt/shared/appsvcs/info", bigipMgmtDNS, bigipMgmtPort)
+
+	// since the BIG-IP is deployed with a self-signed cert, we need to ignore validation
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config {
+			InsecureSkipVerify: true,
+		},
+	}
+
+	// build an http client with our custom transport
+	client := &http.Client{
+		Transport: tr,
+	}
+
+	// configure the Hashcorp retryablehttp client
+	rclient := &retryablehttp.Client{
+		HTTPClient: client,
+		RetryWaitMin: minRetryTime * time.Second,
+		RetryWaitMax: maxRetryTime * time.Second,
+		RetryMax: maxRetryCount,
+		Backoff: retryablehttp.DefaultBackoff,
+	}
+
+	// AnO Toolchain returns a 400 if the rpm is not installed, retry if a 400 is returned
+	rclient.CheckRetry = func (_ context.Context, resp *http.Response, err error) (bool, error) {
+		if err != nil {
+			return true, err
+		}
+		if resp.StatusCode == 0 || resp.StatusCode >= 400 {
+			fmt.Println(resp.StatusCode)
+			return true, nil
+		}
+		return false, nil
+	}
+
+	// Check DO info page
+	DOurl := fmt.Sprintf("https://%s:%s%s", bigipMgmtDNS, bigipMgmtPort, doInfoURL)
+	doreq, err := retryablehttp.NewRequest("GET", DOurl, nil)
+	doreq.SetBasicAuth("admin", bigipPwd)
+	doresp, err := rclient.Do(doreq)
+	if err != nil || doresp.StatusCode != 200 {
+		t.Errorf("DO REQUEST FAILED")
+	}
+	fmt.Println(doresp.StatusCode)
+	defer doresp.Body.Close()
+
+	// Check AS3 info page
+	AS3url := fmt.Sprintf("https://%s:%s%s", bigipMgmtDNS, bigipMgmtPort, as3InfoURL)
+	as3req, err := retryablehttp.NewRequest("GET", AS3url, nil)
+	as3req.SetBasicAuth("admin", bigipPwd)
+	as3resp, err := rclient.Do(as3req)
+	if err != nil || as3resp.StatusCode != 200 {
+		t.Errorf("AS3 REQUEST FAILED")
+	}
+	fmt.Println(as3resp.StatusCode)
+	defer as3resp.Body.Close()
 }
