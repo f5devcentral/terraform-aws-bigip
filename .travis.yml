@@ -20,6 +20,4 @@ before_install:
   - export PATH="~/bin:$PATH"
 
 script: 
-  - pwd
-  - ls
   - go test -v -count=1 -timeout 30m ./...

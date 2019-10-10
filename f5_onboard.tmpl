@@ -28,7 +28,16 @@ curl -o /config/cloud/utils.sh -s --fail --retry 60 -m 10 -L https://raw.githubu
 . /config/cloud/utils.sh
 wait_for_bigip
 
+### CHECK IF DNS IS CONFIGURED YET, IF NOT, SLEEP
+echo "CHECK THAT DNS IS READY"
+nslookup github.com
+if [ $? -ne 0 ]; then
+  echo "DNS NOT READY, SLEEP 30 SECS"
+  sleep 30
+fi
+
 ### GET SECRET VIA DEFAULT REQUESTS LIB ON BIG-IP
+echo "GET BIG-IP PASSWORD FROM AWS SECRET MANAGER"
 role_name=$(curl -s "http://169.254.169.254/latest/meta-data/iam/security-credentials/" )
 payload=$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/$role_name)
 export AWS_ACCESS_KEY_ID=$(printf "$payload" | jq -r ".AccessKeyId")
@@ -179,11 +188,18 @@ print(r.text)
 END_TEXT
 
 ### SET BIG-IP PASSWORD
+echo "SET THE BIG-IP PASSWORD"
 pwd=$(python secrets_manager.py | jq -r ".SecretString")
-tmsh modify auth user admin password $pwd
+if [ -z "$pwd" ]
+then
+  echo "ERROR: UNABLE TO OBTAIN PASSWORD"
+else
+  tmsh modify auth user admin password $pwd
+fi
 
 ### DOWNLOAD ONBOARDING PKGS
 # Could be pre-packaged or hosted internally
+mkdir -p ${libs_dir}
 
 DO_URL='${DO_URL}'
 DO_FN=$(basename "$DO_URL")

@@ -126,13 +126,13 @@ func Test1NicExample(t *testing.T) {
 		t.Errorf("CAN NOT OBTAIN BIG-IP PASSWORD FROM SECRET MANAGER")
 	}
 
-	// Sleep for 4 minutes (time to boot BIG-IP) so we do not overwhelm restnoded while installing A&O Toolchain
+	// Sleep for 5 minutes (time to boot BIG-IP) so we do not overwhelm restnoded while installing A&O Toolchain
 	fmt.Println("Sleeping for 5 minutes so A&O Toolchain can be installed")
 	time.Sleep(300 * time.Second)
 
 	const minRetryTime = 1   // seconds
 	const maxRetryTime = 120 // seconds
-	const maxRetryCount = 4
+	const maxRetryCount = 5
 	const attemptTimeoutInit = 2 // seconds
 	const doInfoURL = "/mgmt/shared/declarative-onboarding/info"
 	const as3InfoURL = "/mgmt/shared/appsvcs/info"
