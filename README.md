@@ -13,7 +13,10 @@ This module requires that the user has created a password and stored it in the A
 ## Terraform Version
 This modules supports Terraform 0.12 and higher
 
-## Example 1-NIC Deployment PAYG
+## Examples
+We have provided some common deployment examples below.  However, if you would like to see full end-to-end examples with the creation of all required objects check out the [examples](https://github.com/f5devcentral/terraform-aws-bigip/tree/master/examples) folder in the [GitHub repository](https://github.com/f5devcentral/terraform-aws-bigip/).
+
+### Example 1-NIC Deployment PAYG
 ```hcl
 module bigip {
   source = "f5devcentral/bigip/aws"
@@ -27,7 +30,7 @@ module bigip {
   vpc_mgmt_subnet_ids = [subnet-01234567890abcdef]
 }
 ```
-## Example 1-NIC Deployment BYOL
+### Example 1-NIC Deployment BYOL
 ```hcl
 module bigip {
   source = "f5devcentral/bigip/aws"
@@ -43,7 +46,7 @@ module bigip {
 }
 ```
 
-## Example 3-NIC Deployment PAYG
+### Example 3-NIC Deployment PAYG
 ```hcl
 module bigip {
   source = "f5devcentral/bigip/aws"
