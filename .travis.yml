@@ -1,0 +1,23 @@
+language: go
+sudo: false
+
+go:
+- master
+
+branches:
+  only:
+    - master
+
+env:
+  - TF_INPUT=false TF_IN_AUTOMATION=true
+
+# Install terraform
+before_install:
+  - curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.9/terraform_0.12.9_linux_amd64.zip
+  - unzip /tmp/terraform.zip -d /tmp
+  - mkdir -p ~/bin
+  - mv /tmp/terraform ~/bin
+  - export PATH="~/bin:$PATH"
+
+script: 
+  - go test -v -count=1 -timeout 30m ./...

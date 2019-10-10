@@ -1,5 +1,7 @@
 provider "aws" {
   region = local.region
+  # access_key = var.AccessKeyID
+  # secret_key = var.SecretAccessKey
 }
 
 #
@@ -7,6 +9,26 @@ provider "aws" {
 #
 resource "random_id" "id" {
   byte_length = 2
+}
+
+#
+# Create random password for BIG-IP
+#
+resource "random_password" "password" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
+}
+
+#
+# Create Secret Store and Store BIG-IP Password
+#
+resource "aws_secretsmanager_secret" "bigip" {
+  name = format("%s-bigip-secret-%s", var.prefix, random_id.id.hex)
+}
+resource "aws_secretsmanager_secret_version" "bigip-pwd" {
+  secret_id     = aws_secretsmanager_secret.bigip.id
+  secret_string = random_password.password.result
 }
 
 #
@@ -97,8 +119,9 @@ module bigip {
     local.prefix,
     random_id.id.hex
   )
-  f5_instance_count = length(local.azs)
-  ec2_key_name      = var.ec2_key_name
+  f5_instance_count           = length(local.azs)
+  ec2_key_name                = var.ec2_key_name
+  aws_secretmanager_secret_id = aws_secretsmanager_secret.bigip.id
   mgmt_subnet_security_group_ids = [
     module.web_server_sg.this_security_group_id,
     module.web_server_secure_sg.this_security_group_id,

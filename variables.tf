@@ -19,7 +19,7 @@ variable "f5_instance_count" {
 variable "ec2_instance_type" {
   description = "AWS EC2 instance type"
   type        = string
-  default     = "m5.large"
+  default     = "m4.large"
 }
 
 variable "ec2_key_name" {
@@ -67,6 +67,11 @@ variable "private_subnet_security_group_ids" {
   description = "AWS Security Group ID for BIG-IP private interface"
   type        = list
   default     = []
+}
+
+variable "aws_secretmanager_secret_id" {
+  description = "AWS Secret Manager Secret ID that stores the BIG-IP password"
+  type        = string
 }
 
 

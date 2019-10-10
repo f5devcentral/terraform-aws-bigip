@@ -10,3 +10,8 @@
 
 # Terraform crash log
 **/crash.log
+
+# Go Tests
+**/vendor
+**/Gopkg.toml
+**/Gopkg.lock

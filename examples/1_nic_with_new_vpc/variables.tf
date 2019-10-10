@@ -6,3 +6,13 @@ variable "ec2_key_name" {
   description = "AWS EC2 Key name for SSH access"
   type        = string
 }
+
+# variable "AccessKeyID" {}
+
+# variable "SecretAccessKey" {}
+
+variable "prefix" {
+  description = "Prefix for resources created by this module"
+  type        = string
+  default     = "terraform-aws-bigip-1nic"
+}
