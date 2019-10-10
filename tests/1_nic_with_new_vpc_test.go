@@ -127,8 +127,8 @@ func Test1NicExample(t *testing.T) {
 	}
 
 	// Sleep for 4 minutes (time to boot BIG-IP) so we do not overwhelm restnoded while installing A&O Toolchain
-	fmt.Println("Sleeping for 4 minutes so A&O Toolchain can be installed")
-	time.Sleep(240 * time.Second)
+	fmt.Println("Sleeping for 5 minutes so A&O Toolchain can be installed")
+	time.Sleep(300 * time.Second)
 
 	const minRetryTime = 1   // seconds
 	const maxRetryTime = 120 // seconds
