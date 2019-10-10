@@ -7,10 +7,6 @@ variable "ec2_key_name" {
   type        = string
 }
 
-variable "AccessKeyID" {}
-
-variable "SecretAccessKey" {}
-
 variable "prefix" {
   description = "Prefix for resources created by this module"
   type        = string
