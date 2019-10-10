@@ -19,7 +19,7 @@ import (
 )
 
 // AWS Code snippit to obtain secret
-func getSecret(secretName string, region string) (password string, err error) {
+func getSecret3(secretName string, region string) (password string, err error) {
 	// Create a session
 	sess:= session.Must(session.NewSession(&aws.Config{
 		Region : aws.String(region),
@@ -85,7 +85,7 @@ func getSecret(secretName string, region string) (password string, err error) {
 	}
 }
 
-func testAnOToolchain(url string, pwd string, client *retryablehttp.Client) (int, error) {
+func testAnOToolchain3(url string, pwd string, client *retryablehttp.Client) (int, error) {
 	req, err := retryablehttp.NewRequest("GET", url, nil)
 	req.SetBasicAuth("admin", pwd)
 	resp, err := client.Do(req)
@@ -102,7 +102,7 @@ func testAnOToolchain(url string, pwd string, client *retryablehttp.Client) (int
 //      AWS_SECRET_ACCESS_KEY
 // Ensure you have defined the default AWS region in the following environment var:
 //      AWS_DEFAULT_REGION
-func Test1NicExample(t *testing.T) {
+func Test3NicExample(t *testing.T) {
 	opts := &terraform.Options{
 		TerraformDir: "../examples/3_nic_with_new_vpc",
 		Vars: map[string]interface{} {
@@ -120,7 +120,7 @@ func Test1NicExample(t *testing.T) {
 	bigipMgmtDNS := terraform.OutputList(t, opts, "bigip_mgmt_dns")
 	bigipMgmtPort := terraform.OutputRequired(t, opts, "bigip_mgmt_port")
 	awsSecretmanagerSecretName := terraform.OutputRequired(t, opts, "aws_secretmanager_secret_name")
-	bigipPwd, err := getSecret(awsSecretmanagerSecretName, os.Getenv("AWS_DEFAULT_REGION")) 
+	bigipPwd, err := getSecret3(awsSecretmanagerSecretName, os.Getenv("AWS_DEFAULT_REGION")) 
 
 	if err != nil || bigipPwd == "" {
 		t.Errorf("CAN NOT OBTAIN BIG-IP PASSWORD FROM SECRET MANAGER")
@@ -176,7 +176,7 @@ func Test1NicExample(t *testing.T) {
 		// Check DO info page
 		fmt.Printf("CHECK DO FOR %s\n", bigip)
 		DOurl := fmt.Sprintf("https://%s:%s%s", bigip, bigipMgmtPort, doInfoURL)
-		doresp, err := testAnOToolchain(DOurl, bigipPwd, rclient)
+		doresp, err := testAnOToolchain3(DOurl, bigipPwd, rclient)
 		if err != nil {
 			t.Errorf("DO REQUEST FAILED")
 		}
@@ -185,7 +185,7 @@ func Test1NicExample(t *testing.T) {
 		// Check AS3 info page
 		fmt.Printf("CHECK AS3 FOR %s\n", bigip)
 		AS3url := fmt.Sprintf("https://%s:%s%s", bigip, bigipMgmtPort, as3InfoURL)
-		as3resp, err := testAnOToolchain(AS3url, bigipPwd, rclient)
+		as3resp, err := testAnOToolchain3(AS3url, bigipPwd, rclient)
 		if err != nil {
 			t.Errorf("DO REQUEST FAILED")
 		}
