@@ -18,6 +18,12 @@ before_install:
   - mkdir -p ~/bin
   - mv /tmp/terraform ~/bin
   - export PATH="~/bin:$PATH"
+  - go install github.com/hashicorp/go-retryablehttp
+	- go install github.com/gruntwork-io/terratest/modules/terraform
+	- go install github.com/aws/aws-sdk-go/service/secretsmanager
+	- go install github.com/aws/aws-sdk-go/aws
+	- go install github.com/aws/aws-sdk-go/aws/awserr
+	- go install github.com/aws/aws-sdk-go/aws/session
 
 script: 
-  - cd test && make
+  - go test -v -count=1 -timeout 30m ./...
