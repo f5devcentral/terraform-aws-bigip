@@ -20,9 +20,6 @@ import (
 
 // AWS Code snippit to obtain secret
 func getSecret(secretName string, region string) (password string, err error) {
-	// secretName := "terraform-aws-bigip-1nic-bigip-secret-79ea"
-	// region := "us-east-2"
-
 	// Create a session
 	sess:= session.Must(session.NewSession(&aws.Config{
 		Region : aws.String(region),

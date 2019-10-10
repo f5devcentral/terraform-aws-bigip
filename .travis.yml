@@ -1,5 +1,8 @@
-language: minimal
+language: go
 sudo: false
+
+go:
+- master
 
 branches:
   only:
@@ -17,6 +20,4 @@ before_install:
   - export PATH="~/bin:$PATH"
 
 script: 
-  - terraform init 
-  - terraform validate 
-  - terraform fmt -check -recursive
+  - cd test && make
