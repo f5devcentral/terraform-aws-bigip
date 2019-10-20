@@ -114,7 +114,7 @@ module bigip {
   source = "../../"
 
   prefix = format(
-    "%s-bigip-1-nic_with_new_vpc-%s",
+    "%s-bigip-3-nic_with_new_vpc-%s",
     local.prefix,
     random_id.id.hex
   )
