@@ -10,12 +10,6 @@ variable "f5_ami_search_name" {
   default     = "F5 Networks BIGIP-14.* PAYG - Best 200Mbps*"
 }
 
-variable "application_endpoint_count" {
-  description = "number of public application addresses to assign"
-  type        = number
-  default     = 5
-}
-
 variable "f5_instance_count" {
   description = "Number of BIG-IPs to deploy"
   type        = number
