@@ -16,6 +16,12 @@ variable "f5_instance_count" {
   default     = 1
 }
 
+variable "application_endpoint_count" {
+  description = "number of public application addresses to assign"
+  type        = number
+  default     = 5
+}
+
 variable "ec2_instance_type" {
   description = "AWS EC2 instance type"
   type        = string

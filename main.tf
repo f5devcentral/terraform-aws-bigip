@@ -43,6 +43,7 @@ resource "aws_network_interface" "public" {
   count             = length(var.vpc_public_subnet_ids)
   subnet_id         = var.vpc_public_subnet_ids[count.index]
   security_groups   = var.public_subnet_security_group_ids
+  private_ips_count = var.application_endpoint_count
 }
 
 # 
