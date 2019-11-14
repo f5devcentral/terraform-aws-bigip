@@ -46,6 +46,23 @@ module bigip {
 }
 ```
 
+### Example 2-NIC Deployment PAYG
+```hcl
+module bigip {
+  source = "f5devcentral/bigip/aws"
+  version = "0.1.2"
+
+  prefix            = "bigip"
+  f5_instance_count = 1
+  ec2_key_name      = "my-key"
+  aws_secretmanager_secret_id = "my_bigip_password"
+  mgmt_subnet_security_group_ids = [sg-01234567890abcdef]
+  public_subnet_security_group_ids = [sg-01234567890ghijkl]
+  vpc_mgmt_subnet_ids = [subnet-01234567890abcdef]
+  vpc_public_subnet_ids = [subnet-01234567890ghijkl]
+}
+```
+
 ### Example 3-NIC Deployment PAYG
 ```hcl
 module bigip {
