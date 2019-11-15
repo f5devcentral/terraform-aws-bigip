@@ -15,7 +15,7 @@ resource "random_id" "id" {
 resource "random_password" "password" {
   length           = 16
   special          = true
-  override_special = "_%@"
+  override_special = " #%*+,-./:=?@[]^_~"
 }
 
 #
@@ -127,8 +127,8 @@ module bigip {
     module.web_server_secure_sg.this_security_group_id
   ]
 
-  vpc_public_subnet_ids  = module.vpc.public_subnets
-  vpc_mgmt_subnet_ids    = module.vpc.database_subnets
+  vpc_public_subnet_ids = module.vpc.public_subnets
+  vpc_mgmt_subnet_ids   = module.vpc.database_subnets
 }
 
 #
