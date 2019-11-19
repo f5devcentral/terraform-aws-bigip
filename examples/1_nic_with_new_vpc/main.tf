@@ -128,7 +128,7 @@ module bigip {
     module.ssh_secure_sg.this_security_group_id,
     module.bigip_mgmt_secure_sg.this_security_group_id
   ]
-  vpc_public_subnet_ids = module.vpc.public_subnets
+  vpc_mgmt_subnet_ids = module.vpc.public_subnets
 }
 
 #
