@@ -19,7 +19,7 @@ variable "f5_instance_count" {
 variable "application_endpoint_count" {
   description = "number of public application addresses to assign"
   type        = number
-  default     = 5
+  default     = 2
 }
 
 variable "ec2_instance_type" {
