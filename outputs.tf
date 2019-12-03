@@ -21,3 +21,15 @@ output "public_nic_ids" {
   description = "List of BIG-IP public network interface ids"
   value       = aws_network_interface.public[*].id
 }
+
+# BIG-IP EC2 Instance IDs
+output "instance_ids" {
+  description = "List of BIG-IP EC2 instance ids"
+  value       = aws_instance.f5_bigip[*].id
+}
+
+# BIG-IP EC2 Instance ARNs
+output "instance_arns" {
+  description = "List of BIG-IP EC2 instance ARNs"
+  value       = aws_instance.f5_bigip[*].arn
+}
