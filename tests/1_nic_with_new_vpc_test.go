@@ -136,6 +136,7 @@ func Test1NicExample(t *testing.T) {
 	const attemptTimeoutInit = 2 // seconds
 	const doInfoURL = "/mgmt/shared/declarative-onboarding/info"
 	const as3InfoURL = "/mgmt/shared/appsvcs/info"
+	const failoverInfoURL = "/mgmt/shared/cloud-failover/info"
 
 	// since the BIG-IP is deployed with a self-signed cert, we need to ignore validation
 	tr := &http.Transport{
@@ -190,5 +191,14 @@ func Test1NicExample(t *testing.T) {
 			t.Errorf("DO REQUEST FAILED")
 		}
 		fmt.Println(as3resp)
+
+		// Check Failover info page
+		fmt.Printf("CHECK Failover FOR %s\n", bigip)
+		FailoverUrl := fmt.Sprintf("https://%s:%s%s", bigip, bigipMgmtPort, failoverInfoURL)
+		failoverResp, err := testAnOToolchain(FailoverUrl, bigipPwd, rclient)
+		if err != nil {
+			t.Errorf("DO REQUEST FAILED")
+		}
+		fmt.Println(failoverResp)
 	}
 }

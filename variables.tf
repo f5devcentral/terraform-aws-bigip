@@ -90,6 +90,14 @@ variable AS3_URL {
   default     = "https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.14.0/f5-appsvcs-3.14.0-4.noarch.rpm"
 }
 
+## Please check and update the latest Failover Extension URL from https://github.com/f5devcentral/f5-cloud-failover-extension/releases/latest 
+# always point to a specific version in order to avoid inadvertent configuration inconsistency
+variable FAILOVER_URL {
+  description = "URL to download the BIG-IP Application Service Extension 3 (AS3) module"
+  type        = string
+  default     = "https://github.com/f5devcentral/f5-cloud-failover-extension/releases/download/v0.9.1/f5-cloud-failover-0.9.1-1.noarch.rpm"
+}
+
 variable "libs_dir" {
   description = "Directory on the BIG-IP to download the A&O Toolchain into"
   type        = string

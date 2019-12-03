@@ -105,11 +105,12 @@ resource "aws_instance" "f5_bigip" {
   user_data = templatefile(
     "${path.module}/f5_onboard.tmpl",
     {
-      DO_URL      = var.DO_URL,
-      AS3_URL     = var.AS3_URL,
-      libs_dir    = var.libs_dir,
-      onboard_log = var.onboard_log,
-      secret_id   = var.aws_secretmanager_secret_id
+      DO_URL       = var.DO_URL,
+      AS3_URL      = var.AS3_URL,
+      FAILOVER_URL = var.FAILOVER_URL,
+      libs_dir     = var.libs_dir,
+      onboard_log  = var.onboard_log,
+      secret_id    = var.aws_secretmanager_secret_id
     }
   )
 
