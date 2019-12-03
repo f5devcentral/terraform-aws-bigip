@@ -39,9 +39,3 @@ output "role_name" {
   description = "IAM Role Name attached to the BIG-IP instance profile"
   value       = aws_iam_role.bigip_role.name
 }
-
-# BIG-IP Instance Profile ARN
-output "instance_profile_arn" {
-  description = "IAM Instance Profile ARN attached to the BIG-IP instance"
-  value       = aws_iam_instance_profile.bigip_profile.arn
-}
