@@ -33,3 +33,15 @@ output "instance_arns" {
   description = "List of BIG-IP EC2 instance ARNs"
   value       = aws_instance.f5_bigip[*].arn
 }
+
+# BIG-IP IAM Role Name
+output "role_name" {
+  description = "IAM Role Name attached to the BIG-IP instance profile"
+  value       = aws_iam_role.name
+}
+
+# BIG-IP Instance Profile ARN
+output "instance_profile_arn" {
+  description = "IAM Instance Profile ARN attached to the BIG-IP instance"
+  value       = aws_iam_instance_profile.arn
+}
