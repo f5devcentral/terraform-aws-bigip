@@ -1,0 +1,22 @@
+{
+    "class": "Cloud_Failover",
+    "environment": "aws",
+    "externalStorage": {
+        "scopingTags": {
+            ${failover_label}
+        }
+    },
+    "failoverAddresses": {
+        "scopingTags": {
+            ${failover_label}
+        }
+    },
+    "failoverRoutes": {
+        "scopingTags": {
+            ${failover_label}
+        },
+        "scopingAddressRanges": [
+            ${failover_scope}
+        ]
+    }
+}
