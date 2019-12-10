@@ -6,23 +6,20 @@ module "bigip" {
     # source = '../'
     source = "github.com/f5devcentral/terraform-aws-bigip?ref=multiple-public-ips"
 
-    prefix                          = var.prefix
-    aws_secretmanager_secret_id     = var.aws_secretmanager_secret_id
-    f5_ami_search_name              = var.f5_ami_search_name
-    f5_instance_count               = var.f5_instance_count
-    ec2_key_name                    = var.ec2_key_name
-    ec2_instance_type               = var.ec2_instance_type
-    DO_URL                          = var.DO_URL
-    
-    mgmt_subnet_security_group_ids  = var.mgmt_subnet_security_group_ids
-
-    public_subnet_security_group_ids = var.public_subnet_security_group_ids
-
+    prefix                            = var.prefix
+    aws_secretmanager_secret_id       = var.aws_secretmanager_secret_id
+    f5_ami_search_name                = var.f5_ami_search_name
+    f5_instance_count                 = var.f5_instance_count
+    ec2_key_name                      = var.ec2_key_name
+    ec2_instance_type                 = var.ec2_instance_type
+    DO_URL                            = var.DO_URL
+    application_instance_count        = length(var.applications)
+    mgmt_subnet_security_group_ids    = var.mgmt_subnet_security_group_ids
+    public_subnet_security_group_ids  = var.public_subnet_security_group_ids
     private_subnet_security_group_ids = var.private_subnet_security_group_ids
-
-    vpc_public_subnet_ids  = var.vpc_public_subnet_ids
-    vpc_private_subnet_ids = var.vpc_private_subnet_ids
-    vpc_mgmt_subnet_ids    = var.vpc_mgmt_subnet_ids
+    vpc_public_subnet_ids             = var.vpc_public_subnet_ids
+    vpc_private_subnet_ids            = var.vpc_private_subnet_ids
+    vpc_mgmt_subnet_ids               = var.vpc_mgmt_subnet_ids
 }
 
 
