@@ -21,3 +21,18 @@ output "public_nic_ids" {
   description = "List of BIG-IP public network interface ids"
   value       = aws_network_interface.public[*].id
 }
+
+output "mgmt_addresses" {
+  description = "List of BIG-IP management addresses"
+  value       = aws_network_interface.mgmt[*].private_ips
+}
+
+output "public_addresses" {
+  description = "List of BIG-IP public addresses"
+  value       = aws_network_interface.public[*].private_ips
+}
+
+output "private_addresses" {
+  description = "List of BIG-IP private addresses"
+  value       = aws_network_interface.private[*].private_ips
+}
