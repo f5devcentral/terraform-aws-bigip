@@ -108,6 +108,7 @@ resource "aws_instance" "f5_bigip" {
     {
       DO_URL      = var.DO_URL,
       AS3_URL     = var.AS3_URL,
+      TS_URL      = var.TS_URL,
       libs_dir    = var.libs_dir,
       onboard_log = var.onboard_log,
       secret_id   = var.aws_secretmanager_secret_id
