@@ -11,7 +11,7 @@ variable "f5_ami_search_name" {
 }
 
 variable "f5_instance_count" {
-  description = "Number of BIG-IPs to deploy"
+  description = "Number of BIG-IPs to deploy per availability zone"
   type        = number
   default     = 1
 }
@@ -33,23 +33,32 @@ variable "ec2_key_name" {
   type        = string
 }
 
-variable "vpc_public_subnet_ids" {
-  description = "AWS VPC Subnet id for the public subnet"
-  type        = list
-  default     = []
+variable "bigip_subnet_map" {
+  description = "map of network subnet ids to BIG-IP interface ids"
+  type = map(object({
+    subnet_ids                = list(string)
+    subnet_security_group_ids = list(string)
+    interface_type            = string
+  }))
 }
 
-variable "vpc_private_subnet_ids" {
-  description = "AWS VPC Subnet id for the private subnet"
-  type        = list
-  default     = []
-}
+# variable "vpc_public_subnet_ids" {
+#   description = "AWS VPC Subnet id for the public subnet"
+#   type        = list
+#   default     = []
+# }
 
-variable "vpc_mgmt_subnet_ids" {
-  description = "AWS VPC Subnet id for the management subnet"
-  type        = list
-  default     = []
-}
+# variable "vpc_private_subnet_ids" {
+#   description = "AWS VPC Subnet id for the private subnet"
+#   type        = list
+#   default     = []
+# }
+
+# variable "vpc_mgmt_subnet_ids" {
+#   description = "AWS VPC Subnet id for the management subnet"
+#   type        = list
+#   default     = []
+# }
 
 variable "mgmt_eip" {
   description = "Enable an Elastic IP address on the management interface"
