@@ -5,10 +5,12 @@ locals {
   network_subnets = flatten([
     for id, subnet_data in var.bigip_subnet_map : [
       for subnet_id in subnet_data.subnet_ids : {
-        id              = id
-        subnet_id       = subnet_id
-        security_groups = subnet_data.subnet_security_group_ids
-        interface_type  = subnet_data.interface_type
+        id                               = id
+        subnet_id                        = subnet_id
+        security_groups                  = subnet_data.subnet_security_group_ids
+        interface_type                   = subnet_data.interface_type
+        public_ip                        = subnet_data.public_ip
+        number_of_additional_private_ips = subnet_data.number_of_additional_private_ips
       }
     ]
   ])
@@ -57,8 +59,7 @@ resource "aws_network_interface" "bigip" {
 
 resource "aws_eip" "mgmt" {
   for_each = {
-    #for interface in(var.mgmt_eip == true ? aws_network_interface.bigip : {}) : interface.id => interface
-    for interface in(var.mgmt_eip == true ? aws_network_interface.bigip : {}) : interface.id => {
+    for interface in aws_network_interface.bigip : interface.id => {
       id = (lookup(interface.tags, "bigip_interface_type", null) == "mgmt" ? interface.id : null)
       # id = interface.id
     }

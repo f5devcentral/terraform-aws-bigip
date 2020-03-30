@@ -36,52 +36,12 @@ variable "ec2_key_name" {
 variable "bigip_subnet_map" {
   description = "map of network subnet ids to BIG-IP interface ids"
   type = map(object({
-    subnet_ids                = list(string)
-    subnet_security_group_ids = list(string)
-    interface_type            = string
+    subnet_ids                       = list(string)
+    subnet_security_group_ids        = list(string)
+    interface_type                   = string
+    public_ip                        = bool
+    number_of_additional_private_ips = number
   }))
-}
-
-# variable "vpc_public_subnet_ids" {
-#   description = "AWS VPC Subnet id for the public subnet"
-#   type        = list
-#   default     = []
-# }
-
-# variable "vpc_private_subnet_ids" {
-#   description = "AWS VPC Subnet id for the private subnet"
-#   type        = list
-#   default     = []
-# }
-
-# variable "vpc_mgmt_subnet_ids" {
-#   description = "AWS VPC Subnet id for the management subnet"
-#   type        = list
-#   default     = []
-# }
-
-variable "mgmt_eip" {
-  description = "Enable an Elastic IP address on the management interface"
-  type        = bool
-  default     = true
-}
-
-variable "mgmt_subnet_security_group_ids" {
-  description = "AWS Security Group ID for BIG-IP management interface"
-  type        = list
-  default     = []
-}
-
-variable "public_subnet_security_group_ids" {
-  description = "AWS Security Group ID for BIG-IP public interface"
-  type        = list
-  default     = []
-}
-
-variable "private_subnet_security_group_ids" {
-  description = "AWS Security Group ID for BIG-IP private interface"
-  type        = list
-  default     = []
 }
 
 variable "aws_secretmanager_secret_id" {

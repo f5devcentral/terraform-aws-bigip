@@ -20,11 +20,9 @@ locals {
         module.web_server_secure_sg.this_security_group_id,
         module.ssh_secure_sg.this_security_group_id
       ]
-      interface_type = "mgmt"
-      # public_ip      = true
-      # tags = {
-      #   "bigip_interface" = "mgmt"
-      # }
+      interface_type                   = "mgmt"
+      public_ip                        = true
+      number_of_additional_private_ips = 0
     },
     1 = {
       subnet_ids = module.vpc.public_subnets
@@ -32,32 +30,27 @@ locals {
         module.web_server_sg.this_security_group_id,
         module.web_server_secure_sg.this_security_group_id
       ]
-      interface_type = "public"
-      # tags = {
-      #   "bigip_interface" = "public"
-      # }
+      interface_type                   = "public"
+      public_ip                        = true
+      number_of_additional_private_ips = 0
     }
     2 = {
       subnet_ids = slice(module.vpc.private_subnets, 0, 2)
       subnet_security_group_ids = [
         module.vpc.default_security_group_id
       ]
-      interface_type = "private"
-      # public_ip      = false
-      # tags = {
-      #   "bigip_interface" = "internal"
-      # }
+      interface_type                   = "private"
+      public_ip                        = false
+      number_of_additional_private_ips = 0
     }
     3 = {
       subnet_ids = slice(module.vpc.private_subnets, 2, 4)
       subnet_security_group_ids = [
         module.vpc.default_security_group_id
       ]
-      interface_type = "private"
-      # public_ip      = false
-      # tags = {
-      #   "bigip_interface" = "internal"
-      # }
+      interface_type                   = "private"
+      public_ip                        = false
+      number_of_additional_private_ips = 0
     }
   }
   network_subnets = flatten([
@@ -193,22 +186,4 @@ module bigip {
   ec2_key_name                = var.ec2_key_name
   aws_secretmanager_secret_id = aws_secretsmanager_secret.bigip.id
   bigip_subnet_map            = local.bigip_subnet_map
-
-  # mgmt_subnet_security_group_ids = [
-  #   module.web_server_secure_sg.this_security_group_id,
-  #   module.ssh_secure_sg.this_security_group_id
-  # ]
-
-  # public_subnet_security_group_ids = [
-  #   module.web_server_sg.this_security_group_id,
-  #   module.web_server_secure_sg.this_security_group_id
-  # ]
-
-  # private_subnet_security_group_ids = [
-  #   module.vpc.default_security_group_id
-  # ]
-
-  # vpc_public_subnet_ids  = module.vpc.public_subnets
-  # vpc_private_subnet_ids = module.vpc.private_subnets
-  # vpc_mgmt_subnet_ids    = module.vpc.database_subnets
 }
