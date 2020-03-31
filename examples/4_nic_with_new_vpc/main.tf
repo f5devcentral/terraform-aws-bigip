@@ -19,8 +19,7 @@ locals {
         0 = {
           subnet_id = module.vpc.database_subnets[0]
           subnet_security_group_ids = [
-            module.web_server_secure_sg.this_security_group_id,
-            module.ssh_secure_sg.this_security_group_id
+            module.bigip_mgmt_sg.this_security_group_id
           ]
           interface_type    = "mgmt"
           public_ip         = true
@@ -29,8 +28,7 @@ locals {
         1 = {
           subnet_id = module.vpc.public_subnets[0]
           subnet_security_group_ids = [
-            module.web_server_sg.this_security_group_id,
-            module.web_server_secure_sg.this_security_group_id
+            module.bigip_sg.this_security_group_id
           ]
           interface_type    = "public"
           public_ip         = true
@@ -61,8 +59,7 @@ locals {
         0 = {
           subnet_id = module.vpc.database_subnets[1]
           subnet_security_group_ids = [
-            module.web_server_secure_sg.this_security_group_id,
-            module.ssh_secure_sg.this_security_group_id
+            module.bigip_mgmt_sg.this_security_group_id
           ]
           interface_type    = "mgmt"
           public_ip         = true
@@ -71,8 +68,7 @@ locals {
         1 = {
           subnet_id = module.vpc.public_subnets[1]
           subnet_security_group_ids = [
-            module.web_server_sg.this_security_group_id,
-            module.web_server_secure_sg.this_security_group_id
+            module.bigip_sg.this_security_group_id
           ]
           interface_type    = "public"
           public_ip         = true
@@ -169,42 +165,53 @@ module "vpc" {
 }
 
 #
-# Create a security group for port 80 traffic
+# Create a security group for BIG-IP
 #
-module "web_server_sg" {
-  source = "terraform-aws-modules/security-group/aws//modules/http-80"
+module "bigip_sg" {
+  source = "terraform-aws-modules/security-group/aws"
 
-  name        = format("%s-web-server-%s", local.prefix, random_id.id.hex)
-  description = "Security group for web-server with HTTP ports"
+  name        = format("%s-bigip-%s", local.prefix, random_id.id.hex)
+  description = "Security group for BIG-IP "
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = [local.allowed_app_cidr]
+  ingress_rules       = ["http-80-tcp", "https-443-tcp"]
+
+  ingress_with_source_security_group_id = [
+    {
+      rule                     = "all-all"
+      source_security_group_id = module.bigip_sg.this_security_group_id
+    }
+  ]
+
+  # Allow ec2 instances outbound Internet connectivity
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules       = ["all-all"]
 }
 
 #
-# Create a security group for port 443 traffic
+# Create a security group for BIG-IP Management
 #
-module "web_server_secure_sg" {
-  source = "terraform-aws-modules/security-group/aws//modules/https-443"
+module "bigip_mgmt_sg" {
+  source = "terraform-aws-modules/security-group/aws"
 
-  name        = format("%s-web-server-secure-%s", local.prefix, random_id.id.hex)
-  description = "Security group for web-server with HTTPS ports"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress_cidr_blocks = [local.allowed_app_cidr]
-}
-
-#
-# Create a security group for SSH traffic
-#
-module "ssh_secure_sg" {
-  source = "terraform-aws-modules/security-group/aws//modules/ssh"
-
-  name        = format("%s-ssh-%s", local.prefix, random_id.id.hex)
-  description = "Security group for SSH ports open within VPC"
+  name        = format("%s-bigip-mgmt-%s", local.prefix, random_id.id.hex)
+  description = "Security group for BIG-IP Management"
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = [local.allowed_mgmt_cidr]
+  ingress_rules       = ["https-443-tcp", "https-8443-tcp", "ssh-tcp"]
+
+  ingress_with_source_security_group_id = [
+    {
+      rule                     = "all-all"
+      source_security_group_id = module.bigip_mgmt_sg.this_security_group_id
+    }
+  ]
+
+  # Allow ec2 instances outbound Internet connectivity
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules       = ["all-all"]
 }
 
 #
