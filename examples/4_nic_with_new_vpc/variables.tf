@@ -12,3 +12,9 @@ variable "prefix" {
   type        = string
   default     = "terraform-aws-bigip-3nic"
 }
+
+variable "ec2_instance_type" {
+  description = "AWS EC2 instance type"
+  type        = string
+  default     = "m4.xlarge"
+}

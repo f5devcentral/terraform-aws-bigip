@@ -15,6 +15,55 @@ locals {
       }
     ]
   ])
+
+  mgmt_network_interfaces = {
+    for nic in local.network_subnets :
+    "${nic.bigip}.${nic.id}" => nic
+    if(nic.interface_type == "mgmt" ? true : false)
+  }
+
+  public_network_interfaces = {
+    for nic in local.network_subnets :
+    "${nic.bigip}.${nic.id}" => nic
+    if(nic.interface_type == "public" ? true : false)
+  }
+
+  private_network_interfaces = {
+    for nic in local.network_subnets :
+    "${nic.bigip}.${nic.id}" => nic
+    if(nic.interface_type == "private" ? true : false)
+  }
+
+  mgmt_eips_public_ip = [
+    for id, nic in local.mgmt_network_interfaces :
+    aws_eip.bigip[id].public_ip
+  ]
+
+  mgmt_eips_public_dns = [
+    for id, nic in local.mgmt_network_interfaces :
+    aws_eip.bigip[id].public_dns
+  ]
+
+  mgmt_ips = [
+    for id, nic in local.mgmt_network_interfaces :
+    aws_eip.bigip[id].private_ip
+  ]
+
+  mgmt_port = coalesce(local.public_ips, local.private_ips) == [] ? "8443" : "443"
+
+  public_network_interface_ids = [
+    for id, nic in local.public_network_interfaces :
+    aws_network_interface.bigip[id].id
+  ]
+  public_ips = [
+    for id, nic in local.public_network_interfaces :
+    aws_network_interface.bigip[id].private_ip
+  ]
+
+  private_ips = [
+    for id, nic in local.private_network_interfaces :
+    aws_network_interface.bigip[id].private_ip
+  ]
 }
 
 #
@@ -68,6 +117,7 @@ resource "aws_eip" "bigip" {
 }
 
 
+
 #
 #Deploy BIG-IP
 #
@@ -89,12 +139,12 @@ resource "aws_instance" "f5_bigip" {
     for_each = {
       for nic in local.network_subnets :
       "${nic.bigip}.${nic.id}" => nic
-      if(nic.bigip == count.index ? true : false)
+      if(tonumber(nic.bigip) == count.index ? true : false)
     }
 
     content {
       network_interface_id = aws_network_interface.bigip["${network_interface.value.bigip}.${network_interface.value.id}"].id
-      device_index         = local.network_subnets[count.index].id
+      device_index         = network_interface.value.id
     }
   }
 

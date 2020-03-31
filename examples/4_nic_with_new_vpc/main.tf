@@ -99,16 +99,6 @@ locals {
       }
     }
   }
-
-  test = {
-    for bigip, bigip_data in local.bigip_map : bigip => {
-      for id, network_interface in bigip_data.network_interfaces : "${bigip}.${id}" => {
-        bigip     = bigip
-        id        = id
-        subnet_id = network_interface.subnet_id
-      }
-    }
-  }
 }
 
 #
@@ -228,7 +218,7 @@ module bigip {
     local.prefix,
     random_id.id.hex
   )
-  ec2_instance_type           = "m5.large"
+  ec2_instance_type           = var.ec2_instance_type
   ec2_key_name                = var.ec2_key_name
   aws_secretmanager_secret_id = aws_secretsmanager_secret.bigip.id
   bigip_map                   = local.bigip_map
