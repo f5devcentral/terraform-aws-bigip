@@ -13,44 +13,100 @@ locals {
   cidr              = "10.0.0.0/16"
   allowed_mgmt_cidr = "0.0.0.0/0"
   allowed_app_cidr  = "0.0.0.0/0"
-  bigip_subnet_map = {
+  bigip_map = {
     0 = {
-      subnet_ids = module.vpc.database_subnets
-      subnet_security_group_ids = [
-        module.web_server_secure_sg.this_security_group_id,
-        module.ssh_secure_sg.this_security_group_id
-      ]
-      interface_type                   = "mgmt"
-      public_ip                        = true
-      number_of_additional_private_ips = 0
+      network_interfaces = {
+        0 = {
+          subnet_id = module.vpc.database_subnets[0]
+          subnet_security_group_ids = [
+            module.web_server_secure_sg.this_security_group_id,
+            module.ssh_secure_sg.this_security_group_id
+          ]
+          interface_type    = "mgmt"
+          public_ip         = true
+          private_ips_count = 0
+        },
+        1 = {
+          subnet_id = module.vpc.public_subnets[0]
+          subnet_security_group_ids = [
+            module.web_server_sg.this_security_group_id,
+            module.web_server_secure_sg.this_security_group_id
+          ]
+          interface_type    = "public"
+          public_ip         = true
+          private_ips_count = 0
+        }
+        2 = {
+          subnet_id = slice(module.vpc.private_subnets, 0, 1)[0]
+          subnet_security_group_ids = [
+            module.vpc.default_security_group_id
+          ]
+          interface_type    = "private"
+          public_ip         = false
+          private_ips_count = 0
+        }
+        3 = {
+          subnet_id = slice(module.vpc.private_subnets, 2, 3)[0]
+          subnet_security_group_ids = [
+            module.vpc.default_security_group_id
+          ]
+          interface_type    = "private"
+          public_ip         = false
+          private_ips_count = 0
+        }
+      }
     },
     1 = {
-      subnet_ids = module.vpc.public_subnets
-      subnet_security_group_ids = [
-        module.web_server_sg.this_security_group_id,
-        module.web_server_secure_sg.this_security_group_id
-      ]
-      interface_type                   = "public"
-      public_ip                        = true
-      number_of_additional_private_ips = 0
+      network_interfaces = {
+        0 = {
+          subnet_id = module.vpc.database_subnets[1]
+          subnet_security_group_ids = [
+            module.web_server_secure_sg.this_security_group_id,
+            module.ssh_secure_sg.this_security_group_id
+          ]
+          interface_type    = "mgmt"
+          public_ip         = true
+          private_ips_count = 0
+        },
+        1 = {
+          subnet_id = module.vpc.public_subnets[1]
+          subnet_security_group_ids = [
+            module.web_server_sg.this_security_group_id,
+            module.web_server_secure_sg.this_security_group_id
+          ]
+          interface_type    = "public"
+          public_ip         = true
+          private_ips_count = 0
+        }
+        2 = {
+          subnet_id = slice(module.vpc.private_subnets, 1, 2)[0]
+          subnet_security_group_ids = [
+            module.vpc.default_security_group_id
+          ]
+          interface_type    = "private"
+          public_ip         = false
+          private_ips_count = 0
+        }
+        3 = {
+          subnet_id = slice(module.vpc.private_subnets, 3, 4)[0]
+          subnet_security_group_ids = [
+            module.vpc.default_security_group_id
+          ]
+          interface_type    = "private"
+          public_ip         = false
+          private_ips_count = 0
+        }
+      }
     }
-    2 = {
-      subnet_ids = slice(module.vpc.private_subnets, 0, 2)
-      subnet_security_group_ids = [
-        module.vpc.default_security_group_id
-      ]
-      interface_type                   = "private"
-      public_ip                        = false
-      number_of_additional_private_ips = 0
-    }
-    3 = {
-      subnet_ids = slice(module.vpc.private_subnets, 2, 4)
-      subnet_security_group_ids = [
-        module.vpc.default_security_group_id
-      ]
-      interface_type                   = "private"
-      public_ip                        = false
-      number_of_additional_private_ips = 0
+  }
+
+  test = {
+    for bigip, bigip_data in local.bigip_map : bigip => {
+      for id, network_interface in bigip_data.network_interfaces : "${bigip}.${id}" => {
+        bigip     = bigip
+        id        = id
+        subnet_id = network_interface.subnet_id
+      }
     }
   }
 }
@@ -172,17 +228,8 @@ module bigip {
     local.prefix,
     random_id.id.hex
   )
-  f5_instance_count           = length(local.azs)
   ec2_instance_type           = "m5.large"
   ec2_key_name                = var.ec2_key_name
   aws_secretmanager_secret_id = aws_secretsmanager_secret.bigip.id
-  bigip_subnet_map            = local.bigip_subnet_map
-}
-
-
-data "aws_network_interfaces" "mgmt" {
-  filter {
-    name   = "tag:bigip_interface_type"
-    values = ["mgmt"]
-  }
+  bigip_map                   = local.bigip_map
 }

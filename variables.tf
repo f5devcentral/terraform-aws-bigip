@@ -10,18 +10,6 @@ variable "f5_ami_search_name" {
   default     = "F5 Networks BIGIP-14.* PAYG - Best 200Mbps*"
 }
 
-variable "f5_instance_count" {
-  description = "Number of BIG-IPs to deploy per availability zone"
-  type        = number
-  default     = 1
-}
-
-variable "application_endpoint_count" {
-  description = "number of public application addresses to assign"
-  type        = number
-  default     = 2
-}
-
 variable "ec2_instance_type" {
   description = "AWS EC2 instance type"
   type        = string
@@ -33,14 +21,16 @@ variable "ec2_key_name" {
   type        = string
 }
 
-variable "bigip_subnet_map" {
+variable "bigip_map" {
   description = "map of network subnet ids to BIG-IP interface ids"
   type = map(object({
-    subnet_ids                       = list(string)
-    subnet_security_group_ids        = list(string)
-    interface_type                   = string
-    public_ip                        = bool
-    number_of_additional_private_ips = number
+    network_interfaces = map(object({
+      subnet_id                 = string
+      subnet_security_group_ids = list(string)
+      interface_type            = string
+      public_ip                 = bool
+      private_ips_count         = number
+    }))
   }))
 }
 

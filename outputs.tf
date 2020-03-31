@@ -36,3 +36,7 @@
 #   description = "List of BIG-IP private addresses"
 #   value       = aws_network_interface.private[*].private_ips
 # }
+
+output "network_subnets" {
+  value = local.network_subnets
+}

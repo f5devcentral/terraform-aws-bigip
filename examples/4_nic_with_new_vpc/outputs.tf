@@ -1,7 +1,7 @@
 # # VPC
-# output "vpc_id" {
-#   value = module.vpc.vpc_id
-# }
+output "vpc_id" {
+  value = module.vpc.vpc_id
+}
 
 # # BIG-IP Management Public IP Addresses
 # output "bigip_mgmt_ips" {
@@ -23,11 +23,11 @@
 #   sensitive = true
 # }
 
-# # BIG-IP Password Secret name
-# output "aws_secretmanager_secret_name" {
-#   value = aws_secretsmanager_secret.bigip.name
-# }
+# BIG-IP Password Secret name
+output "aws_secretmanager_secret_name" {
+  value = aws_secretsmanager_secret.bigip.name
+}
 
-output "test" {
-  value = data.aws_network_interfaces.mgmt
+output "network_subnets" {
+  value = module.bigip.network_subnets
 }

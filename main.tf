@@ -3,14 +3,15 @@
 #
 locals {
   network_subnets = flatten([
-    for id, subnet_data in var.bigip_subnet_map : [
-      for subnet_id in subnet_data.subnet_ids : {
-        id                               = id
-        subnet_id                        = subnet_id
-        security_groups                  = subnet_data.subnet_security_group_ids
-        interface_type                   = subnet_data.interface_type
-        public_ip                        = subnet_data.public_ip
-        number_of_additional_private_ips = subnet_data.number_of_additional_private_ips
+    for bigip, bigip_data in var.bigip_map : [
+      for id, network_interface in bigip_data.network_interfaces : {
+        bigip             = bigip
+        id                = id
+        subnet_id         = network_interface.subnet_id
+        security_groups   = network_interface.subnet_security_group_ids
+        interface_type    = network_interface.interface_type
+        public_ip         = network_interface.public_ip
+        private_ips_count = network_interface.private_ips_count
       }
     ]
   ])
@@ -37,14 +38,16 @@ data "aws_ami" "f5_ami" {
 }
 
 #
-# Create Network Interfaces
+# Create Network Interfaces - test
 #
 resource "aws_network_interface" "bigip" {
   for_each = {
-    for subnet in local.network_subnets : "${subnet.id}:${subnet.subnet_id}" => subnet
+    for nic in local.network_subnets :
+    "${nic.bigip}.${nic.id}" => nic
   }
-  subnet_id       = each.value.subnet_id
-  security_groups = each.value.security_groups
+  subnet_id         = each.value.subnet_id
+  security_groups   = each.value.security_groups
+  private_ips_count = each.value.private_ips_count
   tags = {
     "bigip_interface_type" : each.value.interface_type,
     "bigip_public_ip" : each.value.public_ip
@@ -54,102 +57,63 @@ resource "aws_network_interface" "bigip" {
 #
 # add an elastic IP to the BIG-IP interfaces that require one
 #
-data "aws_network_interfaces" "mgmt" {
-  filter {
-    name   = "tag:bigip_public_ip"
-    values = ["true"]
+resource "aws_eip" "bigip" {
+  for_each = {
+    for nic in local.network_subnets :
+    "${nic.bigip}.${nic.id}" => nic
+    if nic.public_ip
+  }
+  network_interface = aws_network_interface.bigip["${each.value.bigip}.${each.value.id}"].id
+  vpc               = true
+}
+
+
+#
+#Deploy BIG-IP
+#
+resource "aws_instance" "f5_bigip" {
+  # determine the number of BIG-IPs to deploy
+  count                = length(var.bigip_map)
+  instance_type        = var.ec2_instance_type
+  ami                  = data.aws_ami.f5_ami.id
+  iam_instance_profile = aws_iam_instance_profile.bigip_profile.name
+
+  key_name = var.ec2_key_name
+
+  root_block_device {
+    delete_on_termination = true
+  }
+
+  # set the network interfaces
+  dynamic "network_interface" {
+    for_each = {
+      for nic in local.network_subnets :
+      "${nic.bigip}.${nic.id}" => nic
+      if(nic.bigip == count.index ? true : false)
+    }
+
+    content {
+      network_interface_id = aws_network_interface.bigip["${network_interface.value.bigip}.${network_interface.value.id}"].id
+      device_index         = local.network_subnets[count.index].id
+    }
+  }
+
+  # build user_data file from template
+  user_data = templatefile(
+    "${path.module}/f5_onboard.tmpl",
+    {
+      DO_URL      = var.DO_URL,
+      AS3_URL     = var.AS3_URL,
+      TS_URL      = var.TS_URL,
+      libs_dir    = var.libs_dir,
+      onboard_log = var.onboard_log,
+      secret_id   = var.aws_secretmanager_secret_id
+    }
+  )
+
+  depends_on = [aws_network_interface.bigip, aws_eip.bigip]
+
+  tags = {
+    Name = format("%s-%d", var.prefix, count.index)
   }
 }
-resource "aws_eip" "mgmt" {
-  for_each          = toset(data.aws_network_interfaces.mgmt.ids)
-  network_interface = each.value
-  vpc               = true
-  depends_on        = [data.aws_network_interfaces.mgmt]
-}
-
-
-# #
-# # Deploy BIG-IP
-# #
-# resource "aws_instance" "f5_bigip" {
-#   # determine the number of BIG-IPs to deploy
-#   count                = var.f5_instance_count
-#   instance_type        = var.ec2_instance_type
-#   ami                  = data.aws_ami.f5_ami.id
-#   iam_instance_profile = aws_iam_instance_profile.bigip_profile.name
-
-#   key_name = var.ec2_key_name
-
-#   root_block_device {
-#     delete_on_termination = true
-#   }
-
-#   # set the network interfaces
-#   dynamic "network_interface" {
-#     for_each = var.bigip_subnet_map
-
-#     content {
-#       network_interface_id = network_interface.value.network_interface_id[count.index]
-#       device_index         = network_interface_id.value.device_index
-#     }
-#   }
-
-#   # # set the mgmt interface 
-#   # dynamic "network_interface" {
-#   #   for_each = toset([aws_network_interface.mgmt[count.index].id])
-
-#   #   content {
-#   #     network_interface_id = network_interface.value
-#   #     device_index         = 0
-#   #   }
-#   # }
-
-#   # # set the public interface only if an interface is defined
-#   # dynamic "network_interface" {
-#   #   for_each = length(aws_network_interface.public) > count.index ? toset([aws_network_interface.public[count.index].id]) : toset([])
-
-#   #   content {
-#   #     network_interface_id = network_interface.value
-#   #     device_index         = 1
-#   #   }
-#   # }
-
-#   # # set the 3rd private interface only if an interface is defined
-#   # dynamic "network_interface" {
-#   #   for_each = length(aws_network_interface.private) > count.index ? toset([aws_network_interface.private[count.index].id]) : toset([])
-
-#   #   content {
-#   #     network_interface_id = network_interface.value
-#   #     device_index         = 2
-#   #   }
-#   # }
-
-#   # # set the 4th private interface only if an interface is defined
-#   # dynamic "network_interface" {
-#   #   for_each = length(aws_network_interface.private) > (count.index + length(local.azs)) ? toset([aws_network_interface.private[count.index * 2].id]) : toset([])
-
-#   #   content {
-#   #     network_interface_id = network_interface.value
-#   #     device_index         = 3
-#   #   }
-#   # }
-
-#   # build user_data file from template
-#   user_data = templatefile(
-#     "${path.module}/f5_onboard.tmpl",
-#     {
-#       DO_URL      = var.DO_URL,
-#       AS3_URL     = var.AS3_URL,
-#       TS_URL      = var.TS_URL,
-#       libs_dir    = var.libs_dir,
-#       onboard_log = var.onboard_log,
-#       secret_id   = var.aws_secretmanager_secret_id
-#     }
-#   )
-
-#   depends_on = [aws_eip.mgmt]
-
-#   tags = {
-#     Name = format("%s-%d", var.prefix, count.index)
-#   }
-# }
