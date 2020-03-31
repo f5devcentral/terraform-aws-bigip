@@ -39,28 +39,35 @@ variable "aws_secretmanager_secret_id" {
   type        = string
 }
 
-
 ## Please check and update the latest DO URL from https://github.com/F5Networks/f5-declarative-onboarding/releases
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
 variable DO_URL {
   description = "URL to download the BIG-IP Declarative Onboarding module"
   type        = string
-  default     = "https://github.com/F5Networks/f5-declarative-onboarding/releases/download/v1.8.0/f5-declarative-onboarding-1.8.0-2.noarch.rpm"
+  default     = "https://github.com/F5Networks/f5-declarative-onboarding/releases/download/v1.11.1/f5-declarative-onboarding-1.11.1-1.noarch.rpm"
 }
 ## Please check and update the latest AS3 URL from https://github.com/F5Networks/f5-appsvcs-extension/releases/latest 
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
 variable AS3_URL {
   description = "URL to download the BIG-IP Application Service Extension 3 (AS3) module"
   type        = string
-  default     = "https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.14.0/f5-appsvcs-3.14.0-4.noarch.rpm"
+  default     = "https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.13.2/f5-appsvcs-3.13.2-1.noarch.rpm"
 }
 
 ## Please check and update the latest TS URL from https://github.com/F5Networks/f5-telemetry-streaming/releases/latest 
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
 variable TS_URL {
-  description = "URL to download the BIG-IP Telemetry Streaming Extension (TS) module"
+  description = "URL to download the BIG-IP Telemetry Streaming module"
   type        = string
-  default     = "https://github.com/F5Networks/f5-telemetry-streaming/releases/download/v1.8.0/f5-telemetry-1.8.0-1.noarch.rpm"
+  default     = "https://github.com/F5Networks/f5-telemetry-streaming/releases/download/v1.10.0/f5-telemetry-1.10.0-2.noarch.rpm"
+}
+
+## Please check and update the latest Failover Extension URL from https://github.com/f5devcentral/f5-cloud-failover-extension/releases/latest 
+# always point to a specific version in order to avoid inadvertent configuration inconsistency
+variable CFE_URL {
+  description = "URL to download the BIG-IP Application Service Extension 3 (AS3) module"
+  type        = string
+  default     = "https://github.com/f5devcentral/f5-cloud-failover-extension/releases/download/v1.1.0/f5-cloud-failover-1.1.0-0.noarch.rpm"
 }
 
 variable "libs_dir" {
