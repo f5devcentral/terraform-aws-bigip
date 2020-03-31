@@ -53,15 +53,6 @@ locals {
       number_of_additional_private_ips = 0
     }
   }
-  network_subnets = flatten([
-    for id, subnet_data in local.bigip_subnet_map : [
-      for subnet_id in subnet_data.subnet_ids : {
-        id              = id
-        subnet_id       = subnet_id
-        security_groups = subnet_data.subnet_security_group_ids
-      }
-    ]
-  ])
 }
 
 #
@@ -186,4 +177,12 @@ module bigip {
   ec2_key_name                = var.ec2_key_name
   aws_secretmanager_secret_id = aws_secretsmanager_secret.bigip.id
   bigip_subnet_map            = local.bigip_subnet_map
+}
+
+
+data "aws_network_interfaces" "mgmt" {
+  filter {
+    name   = "tag:bigip_interface_type"
+    values = ["mgmt"]
+  }
 }

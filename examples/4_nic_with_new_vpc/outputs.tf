@@ -29,5 +29,5 @@
 # }
 
 output "test" {
-  value = local.network_subnets
+  value = data.aws_network_interfaces.mgmt
 }

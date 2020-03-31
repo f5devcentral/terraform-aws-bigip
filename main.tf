@@ -45,35 +45,28 @@ resource "aws_network_interface" "bigip" {
   }
   subnet_id       = each.value.subnet_id
   security_groups = each.value.security_groups
-  tags            = { "bigip_interface_type" : each.value.interface_type }
-}
-
-#
-# add an elastic IP to the BIG-IP management interface
-#
-# data "aws_network_interface" "mgmt" {
-#   filter = {
-#     vpc-id = 
-#   }
-# }
-
-resource "aws_eip" "mgmt" {
-  for_each = {
-    for interface in aws_network_interface.bigip : interface.id => {
-      id = (lookup(interface.tags, "bigip_interface_type", null) == "mgmt" ? interface.id : null)
-      # id = interface.id
-    }
+  tags = {
+    "bigip_interface_type" : each.value.interface_type,
+    "bigip_public_ip" : each.value.public_ip
   }
-  network_interface = each.value.id
-  vpc               = true
 }
 
+#
+# add an elastic IP to the BIG-IP interfaces that require one
+#
+data "aws_network_interfaces" "mgmt" {
+  filter {
+    name   = "tag:bigip_public_ip"
+    values = ["true"]
+  }
+}
+resource "aws_eip" "mgmt" {
+  for_each          = toset(data.aws_network_interfaces.mgmt.ids)
+  network_interface = each.value
+  vpc               = true
+  depends_on        = [data.aws_network_interfaces.mgmt]
+}
 
-# resource "aws_eip" "mgmt" {
-#   count             = var.mgmt_eip ? length(var.vpc_mgmt_subnet_ids) : 0
-#   network_interface = aws_network_interface.mgmt[count.index].id
-#   vpc               = true
-# }
 
 # #
 # # Deploy BIG-IP
