@@ -1,22 +1,18 @@
-# BIG-IP Management Public IP Addresses
 output "mgmt_public_ips" {
   description = "List of BIG-IP public IP addresses for the management interfaces"
   value       = local.mgmt_eips_public_ip
 }
 
-# BIG-IP Management Public DNS
 output "mgmt_public_dns" {
   description = "List of BIG-IP public DNS records for the management interfaces"
   value       = local.mgmt_eips_public_dns
 }
 
-# BIG-IP Management Port
 output "mgmt_port" {
   description = "HTTPS Port used for the BIG-IP management interface"
   value       = local.mgmt_port
 }
 
-# Public Network Interface
 output "public_nic_ids" {
   description = "List of BIG-IP public network interface ids"
   value       = local.public_network_interface_ids
