@@ -118,7 +118,7 @@ resource "aws_instance" "f5_bigip" {
     for_each = {
       for nic in local.network_subnets :
       "${nic.bigip}.${nic.id}" => nic
-      if(tonumber(nic.bigip) == count.index ? true : false)
+      if tonumber(nic.bigip) == count.index
     }
 
     content {
