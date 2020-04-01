@@ -62,28 +62,3 @@ output "managementsubnets" {
       if (subnet.tags.subnet_type == "management" )
   }
 }
-
-
-# output "all_mgmt_cidrs" {
-#   value = [
-#     for obj in local.all_cidrs:
-#       obj
-#       if (obj.subnet_type == "management")
-#   ]
-# }
-
-# output "all_public_cidrs" {
-#   value = [
-#     for obj in local.all_cidrs:
-#       obj
-#       if (obj.subnet_type == "public")
-#   ]
-# }
-
-# output "all_private_cidrs" {
-#   value = [
-#     for obj in local.all_cidrs:
-#       obj
-#       if (obj.subnet_type == "private")
-#   ]
-# }
