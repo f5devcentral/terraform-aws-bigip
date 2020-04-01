@@ -50,6 +50,7 @@ output "public_nic_ids" {
   value       = module.bigip.public_nic_ids
 }
 
+# this should eventually be removed
 output "all_cidrs" {
   value = local.all_cidrs
 }
