@@ -10,7 +10,7 @@ variable "specification" {
       number_private_interfaces = 0
       ec2_instance_type         = "m4.large"
     }
-    "4nic" = {
+    "3nic" = {
       number_public_interfaces  = 1
       number_private_interfaces = 1
       ec2_instance_type         = "m4.xlarge"
