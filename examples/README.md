@@ -15,7 +15,7 @@ It currently supports the following workspaces:
 To run this example run the following commands:
 ```bash
 terraform workspace new 2nic
-terraform workspace seleect 2nic
+terraform workspace select 2nic
 terraform init
 terraform plan
 terraform apply --auto-approve 
