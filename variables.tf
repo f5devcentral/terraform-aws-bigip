@@ -65,7 +65,7 @@ variable TS_URL {
 ## Please check and update the latest Failover Extension URL from https://github.com/f5devcentral/f5-cloud-failover-extension/releases/latest 
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
 variable CFE_URL {
-  description = "URL to download the BIG-IP Application Service Extension 3 (AS3) module"
+  description = "URL to download the BIG-IP Cloud Failover Extension module"
   type        = string
   default     = "https://github.com/f5devcentral/f5-cloud-failover-extension/releases/download/v1.1.0/f5-cloud-failover-1.1.0-0.noarch.rpm"
 }
