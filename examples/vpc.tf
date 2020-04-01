@@ -3,7 +3,7 @@ locals {
   cidr = "10.0.0.0/16"
   mgmt_cidrs = flatten([
     for az_num in range(length(local.azs)) : {
-      num         = 0
+      num         = 0 # fixed to zero because there's only 
       az          = local.azs[az_num]
       cidr        = cidrsubnet(var.cidr, 8, az_num)
       subnet_type = "management"
@@ -42,51 +42,15 @@ resource "aws_vpc" "default" {
 }
 
 #
-# Create the management subnets
+# create all of the subnets
+# subnets will be keyed by availability zone, subnet purpose, and an index value
+# for example, "us-west-2a:management:0" or "us-west-2b:private:1"
 #
-resource "aws_subnet" "mgmt" {
+resource "aws_subnet" "vpcsubnets" {
   for_each = {
     for id, subnetdata in local.all_cidrs : 
       "${subnetdata.az}:${subnetdata.subnet_type}:${subnetdata.num}" => subnetdata
-      if (subnetdata.subnet_type == "management")
   }
-
-  vpc_id            = aws_vpc.default.id
-  cidr_block        = each.value.cidr
-  availability_zone = each.value.az
-  tags = {
-    subnet_type = each.value.subnet_type
-  }
-}
-
-#
-# Create the public subnets
-#
-resource "aws_subnet" "public" {
-  for_each = {
-    for id, subnetdata in local.all_cidrs : 
-      "${subnetdata.az}:${subnetdata.subnet_type}:${subnetdata.num}" => subnetdata
-      if (subnetdata.subnet_type == "public")
-  }
-
-  vpc_id            = aws_vpc.default.id
-  cidr_block        = each.value.cidr
-  availability_zone = each.value.az
-  tags = {
-    subnet_type = each.value.subnet_type
-  }
-}
-
-#
-# Create the private subnets
-#
-resource "aws_subnet" "private" {
-  for_each = {
-    for id, subnetdata in local.all_cidrs : 
-      "${subnetdata.az}:${subnetdata.subnet_type}:${subnetdata.num}" => subnetdata
-      if (subnetdata.subnet_type == "private")
-  }
-
   vpc_id            = aws_vpc.default.id
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
@@ -114,20 +78,14 @@ resource "aws_route_table" "internet-gw" {
 }
 
 #
-# Associate the route table to the mgmt subnets
+# Associate the route table to the management and public subnets
 #
-resource "aws_route_table_association" "mgmt" {
-  for_each = aws_subnet.mgmt
-
-  subnet_id      = each.value.id
-  route_table_id = aws_route_table.internet-gw.id
-}
-
-#
-# Associate the route table to the public subnets
-#
-resource "aws_route_table_association" "public" {
-  for_each = aws_subnet.public
+resource "aws_route_table_association" "routetables" {
+  for_each = {
+      for id, subnet in aws_subnet.vpcsubnets:
+      id => subnet
+      if (subnet.tags.subnet_type == "management" || subnet.tags.subnet_type == "public")
+  }
 
   subnet_id      = each.value.id
   route_table_id = aws_route_table.internet-gw.id

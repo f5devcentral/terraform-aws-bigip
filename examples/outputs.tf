@@ -55,6 +55,15 @@ output "all_cidrs" {
   value = local.all_cidrs
 }
 
+output "managementsubnets" {
+  value = {
+    for id, subnet in aws_subnet.vpcsubnets:
+      id => subnet
+      if (subnet.tags.subnet_type == "management" )
+  }
+}
+
+
 # output "all_mgmt_cidrs" {
 #   value = [
 #     for obj in local.all_cidrs:
