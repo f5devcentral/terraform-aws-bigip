@@ -34,33 +34,12 @@ locals {
     if(nic.interface_type == "private" ? true : false)
   }
 
-  mgmt_eips_public_ip = [
-    for id, nic in local.mgmt_network_interfaces :
-    aws_eip.bigip[id].public_ip
-  ]
-
-  mgmt_eips_public_dns = [
-    for id, nic in local.mgmt_network_interfaces :
-    aws_eip.bigip[id].public_dns
-  ]
-
-  mgmt_ips = [
-    for id, nic in local.mgmt_network_interfaces :
-    aws_eip.bigip[id].private_ip
-  ]
-
-  mgmt_port = coalesce(local.public_ips, local.private_ips) == [] ? "8443" : "443"
-
-  public_network_interface_ids = [
-    for id, nic in local.public_network_interfaces :
-    aws_network_interface.bigip[id].id
-  ]
-  public_ips = [
+  public_addresses = [
     for id, nic in local.public_network_interfaces :
     aws_network_interface.bigip[id].private_ip
   ]
 
-  private_ips = [
+  private_addresses = [
     for id, nic in local.private_network_interfaces :
     aws_network_interface.bigip[id].private_ip
   ]
