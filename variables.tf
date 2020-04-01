@@ -82,14 +82,7 @@ variable onboard_log {
   default     = "/var/log/startup-script.log"
 }
 
-variable cfe_route_table_id {
-  description = "AWS Route Table ID for the table Cloud Failover Extension needs to update"
+variable iam_instance_profile {
+  description = "IAM Profile used by the BIG-IP for access to secrets manager, S3, EC2 and Logging"
   type        = string
-  default     = "*"
-}
-
-variable cfe_ec2_resource_tag {
-  description = "EC2 tag used by Cloud Failover Extension"
-  type        = string
-  default     = "bigip-cfe"
 }

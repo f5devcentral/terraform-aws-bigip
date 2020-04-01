@@ -129,4 +129,5 @@ module bigip {
   ec2_key_name                = var.ec2_key_name
   aws_secretmanager_secret_id = aws_secretsmanager_secret.bigip.id
   bigip_map                   = local.bigip_map
+  iam_instance_profile        = aws_iam_instance_profile.bigip_profile.name
 }

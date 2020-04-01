@@ -1,7 +1,16 @@
+# 
+# Get current AWS region
+#
+data "aws_region" "current" {}
+
+#
+# Get caller identity
+#
+data "aws_caller_identity" "current" {}
+
 #
 # Create IAM Role
 #
-
 data "aws_iam_policy_document" "bigip_role" {
   version = "2012-10-17"
   statement {
@@ -16,7 +25,7 @@ data "aws_iam_policy_document" "bigip_role" {
 }
 
 resource "aws_iam_role" "bigip_role" {
-  name               = format("%s-bigip-role", var.prefix)
+  name               = format("%s-bigip-role-%s", var.prefix, random_id.id.hex)
   assume_role_policy = data.aws_iam_policy_document.bigip_role.json
 
   tags = {
@@ -25,7 +34,7 @@ resource "aws_iam_role" "bigip_role" {
 }
 
 resource "aws_iam_instance_profile" "bigip_profile" {
-  name = format("%s-bigip-profile", var.prefix)
+  name = format("%s-bigip-profile-%s", var.prefix, random_id.id.hex)
   role = aws_iam_role.bigip_role.name
 }
 
@@ -37,7 +46,7 @@ data "aws_iam_policy_document" "bigip_policy" {
     ]
 
     resources = [
-      data.aws_secretsmanager_secret.password.arn
+      aws_secretsmanager_secret.bigip.id
     ]
   }
   statement {
@@ -94,7 +103,7 @@ data "aws_iam_policy_document" "bigip_policy" {
 }
 
 resource "aws_iam_role_policy" "bigip_policy" {
-  name   = format("%s-bigip-policy", var.prefix)
+  name   = format("%s-bigip-policy-%s", var.prefix, random_id.id.hex)
   role   = aws_iam_role.bigip_role.id
   policy = data.aws_iam_policy_document.bigip_policy.json
 }

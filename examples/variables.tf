@@ -62,3 +62,15 @@ variable "allowed_app_cidr" {
   type        = string
   default     = "0.0.0.0/0"
 }
+
+variable cfe_route_table_id {
+  description = "AWS Route Table ID for the table Cloud Failover Extension needs to update"
+  type        = string
+  default     = "*"
+}
+
+variable cfe_ec2_resource_tag {
+  description = "EC2 tag used by Cloud Failover Extension"
+  type        = string
+  default     = "bigip-cfe"
+}
