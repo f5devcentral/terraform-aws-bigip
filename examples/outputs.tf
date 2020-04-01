@@ -49,7 +49,3 @@ output "public_nic_ids" {
   description = "List of BIG-IP public network interface ids"
   value       = module.bigip.public_nic_ids
 }
-
-# output "test" {
-#   value = local.private_subnet_data
-# }
