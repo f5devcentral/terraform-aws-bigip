@@ -73,6 +73,16 @@ data "aws_secretsmanager_secret" "password" {
   name = var.aws_secretmanager_secret_id
 }
 
+# 
+# Get current AWS region
+#
+data "aws_region" "current" {}
+
+#
+# Get caller identity
+#
+data "aws_caller_identity" "current" {}
+
 #
 # Find BIG-IP AMI
 #

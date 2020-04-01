@@ -81,3 +81,15 @@ variable onboard_log {
   type        = string
   default     = "/var/log/startup-script.log"
 }
+
+variable cfe_route_table_id {
+  description = "AWS Route Table ID for the table Cloud Failover Extension needs to update"
+  type        = string
+  default     = "*"
+}
+
+variable cfe_ec2_resource_tag {
+  description = "EC2 tag used by Cloud Failover Extension"
+  type        = string
+  default     = "bigip-cfe"
+}
