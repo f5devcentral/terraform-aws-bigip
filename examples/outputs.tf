@@ -49,3 +49,31 @@ output "public_nic_ids" {
   description = "List of BIG-IP public network interface ids"
   value       = module.bigip.public_nic_ids
 }
+
+output "all_cidrs" {
+  value = local.all_cidrs
+}
+
+# output "all_mgmt_cidrs" {
+#   value = [
+#     for obj in local.all_cidrs:
+#       obj
+#       if (obj.subnet_type == "management")
+#   ]
+# }
+
+# output "all_public_cidrs" {
+#   value = [
+#     for obj in local.all_cidrs:
+#       obj
+#       if (obj.subnet_type == "public")
+#   ]
+# }
+
+# output "all_private_cidrs" {
+#   value = [
+#     for obj in local.all_cidrs:
+#       obj
+#       if (obj.subnet_type == "private")
+#   ]
+# }
