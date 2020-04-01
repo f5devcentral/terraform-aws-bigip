@@ -1,89 +1,89 @@
 
 
-locals {
-  bigip_map = {
-    0 = {
-      network_interfaces = {
-        0 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2a:management:0"].id
-          subnet_security_group_ids = [
-            module.bigip_mgmt_sg.this_security_group_id
-          ]
-          interface_type    = "mgmt"
-          public_ip         = true
-          private_ips_count = 0
-        },
-        1 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2a:public:0"].id
-          subnet_security_group_ids = [
-            module.bigip_sg.this_security_group_id
-          ]
-          interface_type    = "public"
-          public_ip         = true
-          private_ips_count = 0
-        }
-        2 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2a:private:0"].id
-          subnet_security_group_ids = [
-            module.bigip_sg.this_security_group_id
-          ]
-          interface_type    = "private"
-          public_ip         = false
-          private_ips_count = 0
-        }
-        3 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2a:private:1"].id
-          subnet_security_group_ids = [
-            module.bigip_sg.this_security_group_id
-          ]
-          interface_type    = "private"
-          public_ip         = false
-          private_ips_count = 0
-        }
-      }
-    },
-    1 = {
-      network_interfaces = {
-        0 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2b:management:0"].id
-          subnet_security_group_ids = [
-            module.bigip_mgmt_sg.this_security_group_id
-          ]
-          interface_type    = "mgmt"
-          public_ip         = true
-          private_ips_count = 0
-        },
-        1 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2b:public:0"].id
-          subnet_security_group_ids = [
-            module.bigip_sg.this_security_group_id
-          ]
-          interface_type    = "public"
-          public_ip         = true
-          private_ips_count = 0
-        }
-        2 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2b:private:0"].id
-          subnet_security_group_ids = [
-            module.bigip_sg.this_security_group_id
-          ]
-          interface_type    = "private"
-          public_ip         = false
-          private_ips_count = 0
-        }
-        3 = {
-          subnet_id = aws_subnet.vpcsubnets["us-west-2b:private:1"].id
-          subnet_security_group_ids = [
-            module.bigip_sg.this_security_group_id
-          ]
-          interface_type    = "private"
-          public_ip         = false
-          private_ips_count = 0
-        }
-      }
-    }
-  }
-}
+# locals {
+#   bigip_map = {
+#     0 = {
+#       network_interfaces = {
+#         0 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2a:management:0"].id
+#           subnet_security_group_ids = [
+#             module.bigip_mgmt_sg.this_security_group_id
+#           ]
+#           interface_type    = "mgmt"
+#           public_ip         = true
+#           private_ips_count = 0
+#         },
+#         1 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2a:public:0"].id
+#           subnet_security_group_ids = [
+#             module.bigip_sg.this_security_group_id
+#           ]
+#           interface_type    = "public"
+#           public_ip         = true
+#           private_ips_count = 0
+#         }
+#         2 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2a:private:0"].id
+#           subnet_security_group_ids = [
+#             module.bigip_sg.this_security_group_id
+#           ]
+#           interface_type    = "private"
+#           public_ip         = false
+#           private_ips_count = 0
+#         }
+#         3 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2a:private:1"].id
+#           subnet_security_group_ids = [
+#             module.bigip_sg.this_security_group_id
+#           ]
+#           interface_type    = "private"
+#           public_ip         = false
+#           private_ips_count = 0
+#         }
+#       }
+#     },
+#     1 = {
+#       network_interfaces = {
+#         0 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2b:management:0"].id
+#           subnet_security_group_ids = [
+#             module.bigip_mgmt_sg.this_security_group_id
+#           ]
+#           interface_type    = "mgmt"
+#           public_ip         = true
+#           private_ips_count = 0
+#         },
+#         1 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2b:public:0"].id
+#           subnet_security_group_ids = [
+#             module.bigip_sg.this_security_group_id
+#           ]
+#           interface_type    = "public"
+#           public_ip         = true
+#           private_ips_count = 0
+#         }
+#         2 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2b:private:0"].id
+#           subnet_security_group_ids = [
+#             module.bigip_sg.this_security_group_id
+#           ]
+#           interface_type    = "private"
+#           public_ip         = false
+#           private_ips_count = 0
+#         }
+#         3 = {
+#           subnet_id = aws_subnet.vpcsubnets["us-west-2b:private:1"].id
+#           subnet_security_group_ids = [
+#             module.bigip_sg.this_security_group_id
+#           ]
+#           interface_type    = "private"
+#           public_ip         = false
+#           private_ips_count = 0
+#         }
+#       }
+#     }
+#   }
+# }
 
 #
 # Create a random id
