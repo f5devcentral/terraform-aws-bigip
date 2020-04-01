@@ -3,26 +3,33 @@ locals {
   cidr = "10.0.0.0/16"
   mgmt_cidrs = flatten([
     for az_num in range(length(local.azs)) : {
-      az   = local.azs[az_num]
-      cidr = cidrsubnet(var.cidr, 8, az_num)
+      num         = 0
+      az          = local.azs[az_num]
+      cidr        = cidrsubnet(var.cidr, 8, az_num)
+      subnet_type = "management"
     }
   ])
   public_cidrs = flatten([
     for az_num in range(length(local.azs)) : [
       for num in range(var.specification[terraform.workspace].number_public_interfaces) : {
-        az   = local.azs[az_num]
-        cidr = cidrsubnet(var.cidr, 8, 10 + num * 10 + az_num)
+        num         = num
+        az          = local.azs[az_num]
+        cidr        = cidrsubnet(var.cidr, 8, 10 + num * 10 + az_num)
+        subnet_type = "public"
       }
     ]
   ])
   private_cidrs = flatten([
     for az_num in range(length(local.azs)) : [
       for num in range(var.specification[terraform.workspace].number_private_interfaces) : {
-        az   = local.azs[az_num]
-        cidr = cidrsubnet(var.cidr, 8, 20 + num * 10 + az_num)
+        num         = num
+        az          = local.azs[az_num]
+        cidr        = cidrsubnet(var.cidr, 8, 20 + num * 10 + az_num)
+        subnet_type = "private"
       }
     ]
   ])
+  all_cidrs = concat(local.mgmt_cidrs,local.public_cidrs,local.private_cidrs)
 }
 
 #
@@ -39,12 +46,17 @@ resource "aws_vpc" "default" {
 #
 resource "aws_subnet" "mgmt" {
   for_each = {
-    for az, cidr in local.mgmt_cidrs : az => cidr
+    for id, subnetdata in local.all_cidrs : 
+      "${subnetdata.az}:${subnetdata.subnet_type}:${subnetdata.num}" => subnetdata
+      if (subnetdata.subnet_type == "management")
   }
 
   vpc_id            = aws_vpc.default.id
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
+  tags = {
+    subnet_type = each.value.subnet_type
+  }
 }
 
 #
@@ -52,12 +64,17 @@ resource "aws_subnet" "mgmt" {
 #
 resource "aws_subnet" "public" {
   for_each = {
-    for az, cidr in local.public_cidrs : az => cidr
+    for id, subnetdata in local.all_cidrs : 
+      "${subnetdata.az}:${subnetdata.subnet_type}:${subnetdata.num}" => subnetdata
+      if (subnetdata.subnet_type == "public")
   }
 
   vpc_id            = aws_vpc.default.id
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
+  tags = {
+    subnet_type = each.value.subnet_type
+  }
 }
 
 #
@@ -65,12 +82,17 @@ resource "aws_subnet" "public" {
 #
 resource "aws_subnet" "private" {
   for_each = {
-    for az, cidr in local.private_cidrs : az => cidr
+    for id, subnetdata in local.all_cidrs : 
+      "${subnetdata.az}:${subnetdata.subnet_type}:${subnetdata.num}" => subnetdata
+      if (subnetdata.subnet_type == "private")
   }
 
   vpc_id            = aws_vpc.default.id
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
+  tags = {
+    subnet_type = each.value.subnet_type
+  }
 }
 
 #
