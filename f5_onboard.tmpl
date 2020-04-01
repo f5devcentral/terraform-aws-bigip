@@ -207,6 +207,8 @@ AS3_URL='${AS3_URL}'
 AS3_FN=$(basename "$AS3_URL")
 TS_URL='${TS_URL}'
 TS_FN=$(basename "$TS_URL")
+CFE_URL='${CFE_URL}'
+CFE_FN=$(basename "$CFE_URL")
 
 echo -e "\n"$(date) "Download Declarative Onboarding Pkg"
 curl -L -o ${libs_dir}/$DO_FN $DO_URL
@@ -218,6 +220,10 @@ sleep 20
 
 echo -e "\n"$(date) "Download TS Pkg"
 curl -L -o ${libs_dir}/$TS_FN $TS_URL
+sleep 20
+
+echo -e "\n"$(date) "Download CFE Pkg"
+curl -L -o ${libs_dir}/$CFE_FN $CFE_URL
 sleep 20
 
 # Copy the RPM Pkg to the file location
@@ -238,6 +244,10 @@ DATA="{\"operation\":\"INSTALL\",\"packageFilePath\":\"/var/config/rest/download
 echo -e "\n"$(date) "Install TS Pkg"
 restcurl -X POST "shared/iapp/package-management-tasks" -d $DATA
 
+# Install CFE Pkg
+DATA="{\"operation\":\"INSTALL\",\"packageFilePath\":\"/var/config/rest/downloads/$CFE_FN\"}"
+echo -e "\n"$(date) "Install CFE Pkg"
+restcurl -X POST "shared/iapp/package-management-tasks" -d $DATA
 
 date
 echo "FINISHED STARTUP SCRIPT"
