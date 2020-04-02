@@ -20,7 +20,7 @@ locals {
   mgmt_network_interfaces = {
     for nic in local.network_subnets :
     "${nic.bigip}.${nic.id}" => nic
-    if(nic.interface_type == "mgmt" ? true : false)
+    if(nic.interface_type == "management" ? true : false)
   }
 
   public_network_interfaces = {
