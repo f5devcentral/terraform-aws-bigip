@@ -50,15 +50,15 @@ output "public_nic_ids" {
   value       = module.bigip.public_nic_ids
 }
 
-# this should eventually be removed
-output "all_cidrs" {
-  value = local.all_cidrs
-}
 
 output "managementsubnets" {
   value = {
-    for id, subnet in aws_subnet.vpcsubnets:
-      id => subnet
-      if (subnet.tags.subnet_type == "management" )
+    for id, subnet in aws_subnet.vpcsubnets :
+    id => subnet
+    if(subnet.tags.subnet_type == "management")
   }
+}
+
+output bigip_map {
+  value = local.bigip_map
 }
