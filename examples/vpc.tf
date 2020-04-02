@@ -1,28 +1,67 @@
 locals {
   azs  = [format("%s%s", var.region, "a"), format("%s%s", var.region, "b")]
   cidr = "10.0.0.0/16"
+  management_interface_count = 1
+  public_interface_count = var.specification[terraform.workspace].number_public_interfaces
+  private_interface_count = var.specification[terraform.workspace].number_private_interfaces
   mgmt_cidrs = flatten([
     for az_num in range(length(local.azs)) : {
-      az   = local.azs[az_num]
-      cidr = cidrsubnet(var.cidr, 8, az_num)
+      num          = 0 # fixed to zero because there's only 
+      device_index = 0
+      az           = local.azs[az_num]
+      cidr         = cidrsubnet(var.cidr, 8, az_num)
+      subnet_type  = "management"
     }
   ])
   public_cidrs = flatten([
     for az_num in range(length(local.azs)) : [
-      for num in range(var.specification[terraform.workspace].number_public_interfaces) : {
-        az   = local.azs[az_num]
-        cidr = cidrsubnet(var.cidr, 8, 10 + num * 10 + az_num)
+      for num in range(local.public_interface_count) : {
+        num          = num
+        device_index = local.management_interface_count + num
+        az           = local.azs[az_num]
+        cidr         = cidrsubnet(var.cidr, 8, 10 + num * 10 + az_num)
+        subnet_type  = "public"
       }
     ]
   ])
   private_cidrs = flatten([
     for az_num in range(length(local.azs)) : [
-      for num in range(var.specification[terraform.workspace].number_private_interfaces) : {
-        az   = local.azs[az_num]
-        cidr = cidrsubnet(var.cidr, 8, 20 + num * 10 + az_num)
+      for num in range(local.private_interface_count) : {
+        num          = num
+        device_index = local.management_interface_count + local.public_interface_count + num
+        az           = local.azs[az_num]
+        cidr         = cidrsubnet(var.cidr, 8, 20 + num * 10 + az_num)
+        subnet_type  = "private"
       }
     ]
   ])
+  all_cidrs = concat(local.mgmt_cidrs,local.public_cidrs,local.private_cidrs)
+
+  # map security groups to the type of interface
+  # they should be used with
+  interface_security_groups = {
+    "management" = [module.bigip_mgmt_sg.this_security_group_id]
+    "public" = [module.bigip_sg.this_security_group_id]
+    "private" = [module.bigip_sg.this_security_group_id]
+  }
+
+  bigip_map = {
+    for num in range(length(local.azs)): num => {
+        network_interfaces = {
+          for subnet_key, subnet in aws_subnet.vpcsubnets:
+          subnet_key => {
+            subnet_id                 = subnet.id
+            subnet_security_group_ids = lookup(local.interface_security_groups,subnet.tags.subnet_type,[])
+            interface_type            = subnet.tags.subnet_type
+            public_ip                 = (subnet.tags.subnet_type == "management" || subnet.tags.subnet_type == "public") ? true : false
+            private_ips_count         = 0
+            device_index              = subnet.tags.bigip_device_index
+          }
+          if subnet.availability_zone == local.azs[num]
+        }
+    }
+  }
+
 }
 
 #
@@ -35,42 +74,22 @@ resource "aws_vpc" "default" {
 }
 
 #
-# Create the management subnets
+# create all of the subnets
+# subnets will be keyed by availability zone, subnet purpose, and an index value
+# for example, "us-west-2a:management:0" or "us-west-2b:private:1"
 #
-resource "aws_subnet" "mgmt" {
+resource "aws_subnet" "vpcsubnets" {
   for_each = {
-    for az, cidr in local.mgmt_cidrs : az => cidr
+    for id, subnetdata in local.all_cidrs : 
+      "${subnetdata.az}:${subnetdata.subnet_type}:${subnetdata.num}" => subnetdata
   }
-
   vpc_id            = aws_vpc.default.id
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
-}
-
-#
-# Create the public subnets
-#
-resource "aws_subnet" "public" {
-  for_each = {
-    for az, cidr in local.public_cidrs : az => cidr
+  tags = {
+    subnet_type        = each.value.subnet_type
+    bigip_device_index = each.value.device_index
   }
-
-  vpc_id            = aws_vpc.default.id
-  cidr_block        = each.value.cidr
-  availability_zone = each.value.az
-}
-
-#
-# Create the private subnets
-#
-resource "aws_subnet" "private" {
-  for_each = {
-    for az, cidr in local.private_cidrs : az => cidr
-  }
-
-  vpc_id            = aws_vpc.default.id
-  cidr_block        = each.value.cidr
-  availability_zone = each.value.az
 }
 
 #
@@ -92,20 +111,14 @@ resource "aws_route_table" "internet-gw" {
 }
 
 #
-# Associate the route table to the mgmt subnets
+# Associate the route table to the management and public subnets
 #
-resource "aws_route_table_association" "mgmt" {
-  for_each = aws_subnet.mgmt
-
-  subnet_id      = each.value.id
-  route_table_id = aws_route_table.internet-gw.id
-}
-
-#
-# Associate the route table to the public subnets
-#
-resource "aws_route_table_association" "public" {
-  for_each = aws_subnet.public
+resource "aws_route_table_association" "routetables" {
+  for_each = {
+      for id, subnet in aws_subnet.vpcsubnets:
+      id => subnet
+      if (subnet.tags.subnet_type == "management" || subnet.tags.subnet_type == "public")
+  }
 
   subnet_id      = each.value.id
   route_table_id = aws_route_table.internet-gw.id

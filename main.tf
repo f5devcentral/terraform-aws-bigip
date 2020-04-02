@@ -12,6 +12,7 @@ locals {
         interface_type    = network_interface.interface_type
         public_ip         = network_interface.public_ip
         private_ips_count = network_interface.private_ips_count
+        device_index      = network_interface.device_index
       }
     ]
   ])
@@ -123,7 +124,7 @@ resource "aws_instance" "f5_bigip" {
 
     content {
       network_interface_id = aws_network_interface.bigip["${network_interface.value.bigip}.${network_interface.value.id}"].id
-      device_index         = network_interface.value.id
+      device_index         = network_interface.value.device_index
     }
   }
 

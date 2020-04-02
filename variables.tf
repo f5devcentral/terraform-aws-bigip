@@ -30,6 +30,7 @@ variable "bigip_map" {
       interface_type            = string
       public_ip                 = bool
       private_ips_count         = number
+      device_index              = number
     }))
   }))
 }
