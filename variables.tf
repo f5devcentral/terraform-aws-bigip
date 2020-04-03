@@ -87,3 +87,9 @@ variable iam_instance_profile {
   description = "IAM Profile used by the BIG-IP for access to secrets manager, S3, EC2 and Logging"
   type        = string
 }
+
+variable custom_user_data {
+  description = "Provide a custom bash script or cloud-init script the BIG-IP will run on creation"
+  type        = string
+  default     = null
+}

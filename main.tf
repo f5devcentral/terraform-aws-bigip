@@ -129,7 +129,7 @@ resource "aws_instance" "f5_bigip" {
   }
 
   # build user_data file from template
-  user_data = templatefile(
+  user_data = var.custom_user_data != null ? var.custom_user_data : templatefile(
     "${path.module}/f5_onboard.tmpl",
     {
       DO_URL      = var.DO_URL,
