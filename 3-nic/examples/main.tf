@@ -36,10 +36,10 @@ module bigip {
     var.prefix,
     random_id.id.hex
   )
-  azs                         = var.azs
+  azs                         = local.azs
   cidr                        = var.cidr
   vpcsubnets                  = concat(aws_subnet.management,aws_subnet.public,aws_subnet.private)
-  ec2_instance_type           = var.specification[terraform.workspace].ec2_instance_type
+  ec2_instance_type           = "m4.xlarge"
   ec2_key_name                = var.ec2_key_name
   aws_secretmanager_secret_id = aws_secretsmanager_secret.bigip.id
   iam_instance_profile        = aws_iam_instance_profile.bigip_profile.name

@@ -12,30 +12,30 @@ resource "aws_vpc" "default" {
   enable_dns_support   = true
 }
 resource "aws_subnet" "management" {
-  count = length(var.azs)
+  count = length(local.azs)
   vpc_id            = aws_vpc.default.id
   cidr_block        = cidrsubnet(var.cidr, 8, count.index)
-  availability_zone = var.azs[count.index]
+  availability_zone = local.azs[count.index]
   tags = {
     subnet_type        = "management"
     bigip_device_index = 0
   }  
 }
 resource "aws_subnet" "public" {
-  count = length(var.azs)
+  count = length(local.azs)
   vpc_id            = aws_vpc.default.id
   cidr_block        =  cidrsubnet(var.cidr, 8, 10 + count.index)
-  availability_zone = var.azs[count.index]
+  availability_zone = local.azs[count.index]
   tags = {
     subnet_type        = "public"
     bigip_device_index = 1
   }  
 }
 resource "aws_subnet" "private" {
-  count = length(var.azs)
+  count = length(local.azs)
   vpc_id            = aws_vpc.default.id
   cidr_block        =  cidrsubnet(var.cidr, 8, 20 + count.index)
-  availability_zone = var.azs[count.index]
+  availability_zone = local.azs[count.index]
   tags = {
     subnet_type        = "private"
     bigip_device_index = 2
@@ -62,13 +62,13 @@ resource "aws_route_table" "internet-gw" {
   }
 }
 resource "aws_route_table_association" "management" {
-  count = length(var.azs)
+  count = length(local.azs)
 
   subnet_id      = aws_subnet.management[count.index].id
   route_table_id = aws_route_table.internet-gw.id
 }
 resource "aws_route_table_association" "public" {
-  count = length(var.azs)
+  count = length(local.azs)
 
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.internet-gw.id

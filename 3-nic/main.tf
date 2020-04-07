@@ -41,7 +41,7 @@ locals {
   # they should be used with
   interface_security_groups = {
     "management" = var.management_security_groups
-    "public" = var.public_management_groups
+    "public" = var.public_security_groups
     "private" = var.private_security_groups
   }
 
