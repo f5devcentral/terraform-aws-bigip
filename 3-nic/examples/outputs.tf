@@ -52,13 +52,6 @@ output "public_nic_ids" {
 
 
 output "managementsubnets" {
-  value = {
-    for id, subnet in aws_subnet.vpcsubnets :
-    id => subnet
-    if(subnet.tags.subnet_type == "management")
-  }
+  value = aws_subnet.management[*]
 }
 
-output bigip_map {
-  value = local.bigip_map
-}
