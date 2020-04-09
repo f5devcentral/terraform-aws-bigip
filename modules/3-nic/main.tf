@@ -66,7 +66,7 @@ locals {
 
 
 module bigip {
-  source = "../"
+  source = "../../"
 
   prefix = var.prefix
   ec2_instance_type           = var.ec2_instance_type
