@@ -17,7 +17,11 @@ resource "aws_subnet" "management" {
   cidr_block        = cidrsubnet(var.cidr, 8, count.index)
   availability_zone = local.azs[count.index]
   tags = {
-    subnet_type        = "management"
+    # subnet_type and bigip_device_index are required by the BIG-IP module
+    # subnet_type allowed values are management, public, and private
+    # bigip_device_index is used to determine nic order on multi-nic BIG-IPs
+    #   and is zero-based
+    subnet_type        = "management" 
     bigip_device_index = 0
   }  
 }
@@ -27,6 +31,10 @@ resource "aws_subnet" "public" {
   cidr_block        =  cidrsubnet(var.cidr, 8, 10 + count.index)
   availability_zone = local.azs[count.index]
   tags = {
+    # subnet_type and bigip_device_index are required by the BIG-IP module
+    # subnet_type allowed values are management, public, and private
+    # bigip_device_index is used to determine nic order on multi-nic BIG-IPs
+    #   and is zero-based
     subnet_type        = "public"
     bigip_device_index = 1
   }  
@@ -37,6 +45,10 @@ resource "aws_subnet" "private" {
   cidr_block        =  cidrsubnet(var.cidr, 8, 20 + count.index)
   availability_zone = local.azs[count.index]
   tags = {
+    # subnet_type and bigip_device_index are required by the BIG-IP module
+    # subnet_type allowed values are management, public, and private
+    # bigip_device_index is used to determine nic order on multi-nic BIG-IPs
+    #   and is zero-based
     subnet_type        = "private"
     bigip_device_index = 2
   }  
