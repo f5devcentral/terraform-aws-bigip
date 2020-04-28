@@ -54,7 +54,7 @@ locals {
             subnet_security_group_ids = lookup(local.interface_security_groups,subnet.tags.subnet_type,[])
             interface_type            = subnet.tags.subnet_type
             public_ip                 = (subnet.tags.subnet_type == "management" || subnet.tags.subnet_type == "public") ? true : false
-            private_ips_count         = 0
+            private_ips_count         = 0 # this needs to be parameterized
             device_index              = subnet.tags.bigip_device_index
           }
           if subnet.availability_zone == local.azs[num]
@@ -68,7 +68,7 @@ locals {
 module bigip {
   source = "../../"
 
-  prefix = var.prefix
+  prefix                      = var.prefix
   ec2_instance_type           = var.ec2_instance_type
   ec2_key_name                = var.ec2_key_name
   aws_secretmanager_secret_id = var.aws_secretmanager_secret_id
