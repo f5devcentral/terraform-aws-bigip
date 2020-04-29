@@ -10,6 +10,18 @@ variable "f5_ami_search_name" {
   default     = "F5 Networks BIGIP-14.* PAYG - Best 200Mbps*"
 }
 
+variable "f5_instance_count" {
+  description = "Number of BIG-IPs to deploy"
+  type        = number
+  default     = 1
+}
+
+variable "application_endpoint_count" {
+  description = "number of public application addresses to assign"
+  type        = number
+  default     = 2
+}
+
 variable "ec2_instance_type" {
   description = "AWS EC2 instance type"
   type        = string
@@ -21,18 +33,46 @@ variable "ec2_key_name" {
   type        = string
 }
 
-variable "bigip_map" {
-  description = "map of network subnet ids to BIG-IP interface ids"
-  type = map(object({
-    network_interfaces = map(object({
-      subnet_id                 = string
-      subnet_security_group_ids = list(string)
-      interface_type            = string
-      public_ip                 = bool
-      private_ips_count         = number
-      device_index              = number
-    }))
-  }))
+variable "vpc_public_subnet_ids" {
+  description = "AWS VPC Subnet id for the public subnet"
+  type        = list
+  default     = []
+}
+
+variable "vpc_private_subnet_ids" {
+  description = "AWS VPC Subnet id for the private subnet"
+  type        = list
+  default     = []
+}
+
+variable "vpc_mgmt_subnet_ids" {
+  description = "AWS VPC Subnet id for the management subnet"
+  type        = list
+  default     = []
+}
+
+variable "mgmt_eip" {
+  description = "Enable an Elastic IP address on the management interface"
+  type        = bool
+  default     = true
+}
+
+variable "mgmt_subnet_security_group_ids" {
+  description = "AWS Security Group ID for BIG-IP management interface"
+  type        = list
+  default     = []
+}
+
+variable "public_subnet_security_group_ids" {
+  description = "AWS Security Group ID for BIG-IP public interface"
+  type        = list
+  default     = []
+}
+
+variable "private_subnet_security_group_ids" {
+  description = "AWS Security Group ID for BIG-IP private interface"
+  type        = list
+  default     = []
 }
 
 variable "aws_secretmanager_secret_id" {
@@ -40,35 +80,28 @@ variable "aws_secretmanager_secret_id" {
   type        = string
 }
 
+
 ## Please check and update the latest DO URL from https://github.com/F5Networks/f5-declarative-onboarding/releases
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
 variable DO_URL {
   description = "URL to download the BIG-IP Declarative Onboarding module"
   type        = string
-  default     = "https://github.com/F5Networks/f5-declarative-onboarding/releases/download/v1.11.1/f5-declarative-onboarding-1.11.1-1.noarch.rpm"
+  default     = "https://github.com/F5Networks/f5-declarative-onboarding/releases/download/v1.8.0/f5-declarative-onboarding-1.8.0-2.noarch.rpm"
 }
 ## Please check and update the latest AS3 URL from https://github.com/F5Networks/f5-appsvcs-extension/releases/latest 
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
 variable AS3_URL {
   description = "URL to download the BIG-IP Application Service Extension 3 (AS3) module"
   type        = string
-  default     = "https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.13.2/f5-appsvcs-3.13.2-1.noarch.rpm"
+  default     = "https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.14.0/f5-appsvcs-3.14.0-4.noarch.rpm"
 }
 
 ## Please check and update the latest TS URL from https://github.com/F5Networks/f5-telemetry-streaming/releases/latest 
 # always point to a specific version in order to avoid inadvertent configuration inconsistency
 variable TS_URL {
-  description = "URL to download the BIG-IP Telemetry Streaming module"
+  description = "URL to download the BIG-IP Telemetry Streaming Extension (TS) module"
   type        = string
-  default     = "https://github.com/F5Networks/f5-telemetry-streaming/releases/download/v1.10.0/f5-telemetry-1.10.0-2.noarch.rpm"
-}
-
-## Please check and update the latest Failover Extension URL from https://github.com/f5devcentral/f5-cloud-failover-extension/releases/latest 
-# always point to a specific version in order to avoid inadvertent configuration inconsistency
-variable CFE_URL {
-  description = "URL to download the BIG-IP Cloud Failover Extension module"
-  type        = string
-  default     = "https://github.com/f5devcentral/f5-cloud-failover-extension/releases/download/v1.1.0/f5-cloud-failover-1.1.0-0.noarch.rpm"
+  default     = "https://github.com/F5Networks/f5-telemetry-streaming/releases/download/v1.8.0/f5-telemetry-1.8.0-1.noarch.rpm"
 }
 
 variable "libs_dir" {
@@ -81,15 +114,4 @@ variable onboard_log {
   description = "Directory on the BIG-IP to store the cloud-init logs"
   type        = string
   default     = "/var/log/startup-script.log"
-}
-
-variable iam_instance_profile {
-  description = "IAM Profile used by the BIG-IP for access to secrets manager, S3, EC2 and Logging"
-  type        = string
-}
-
-variable custom_user_data {
-  description = "Provide a custom bash script or cloud-init script the BIG-IP will run on creation"
-  type        = string
-  default     = null
 }
