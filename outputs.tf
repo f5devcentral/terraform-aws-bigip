@@ -48,3 +48,14 @@ output "private_addresses" {
 output "network_subnets" {
   value = local.network_subnets
 }
+
+output "bigip_map" {
+  description = "map of network subnet ids to BIG-IP interface ids and assigned IP addresses"
+  value = merge(var.bigip_map, {
+    for bigip_id, bigip in aws_instance.f5_bigip : bigip_id => {
+      # remove the leading bigip_id on the nic_id so it matches the key in the bigip_map variable
+      for nic_id, nic in aws_network_interface.bigip : substr(nic_id, length(tostring(bigip_id)) + 1, length(nic_id)) => nic
+      if(tostring(bigip_id) == substr(nic_id, 0, length(tostring(bigip_id))))
+    }
+  })
+}

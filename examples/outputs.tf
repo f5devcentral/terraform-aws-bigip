@@ -60,5 +60,5 @@ output "managementsubnets" {
 }
 
 output bigip_map {
-  value = local.bigip_map
+  value = module.bigip.bigip_map
 }
