@@ -1,0 +1,14 @@
+name: bigip-atc
+title: InSpec Profile
+maintainer: Mark Menger, Cody Green
+copyright: F5 Networks, 2020
+copyright_email: m.menger@f5.com, c.green@f5.com
+license: Apache-2.0
+summary: BIG-IP Automation Toolchain testing profile
+version: 0.1.0
+supports:
+  platform: os
+depends:
+  - name: inspec-bigip
+    git: https://github.com/mjmenger/inspec-bigip
+    branch:  master
