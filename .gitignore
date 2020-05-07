@@ -17,4 +17,4 @@
 **/Gopkg.lock
 
 # InSpec Tests
-examples/inspec/bigip-ready/files/terraform.json
+**inspec.lock
