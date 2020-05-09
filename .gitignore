@@ -15,3 +15,6 @@
 **/vendor
 **/Gopkg.toml
 **/Gopkg.lock
+
+# InSpec 
+**/inspec.lock
