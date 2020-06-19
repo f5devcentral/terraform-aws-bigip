@@ -85,6 +85,7 @@ resource "aws_network_interface" "bigip" {
   tags = {
     "bigip_interface_type" : each.value.interface_type,
     "bigip_public_ip" : each.value.public_ip
+    "f5_cloud_failover_label" : each.value.cloudfailover_tag
   }
 }
 
