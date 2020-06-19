@@ -13,6 +13,7 @@ locals {
         public_ip         = network_interface.public_ip
         private_ips_count = network_interface.private_ips_count
         device_index      = network_interface.device_index
+        cloudfailover_tag = network_interface.cloudfailover_tag
       }
     ]
   ])
