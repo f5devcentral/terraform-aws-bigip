@@ -29,6 +29,11 @@ locals {
     if(nic.interface_type == "public" ? true : false)
   }
 
+  all_network_interfaces = {
+    for nic in local.network_subnets :
+    "${nic.bigip}.${nic.id}" => nic
+  }
+
   private_network_interfaces = {
     for nic in local.network_subnets :
     "${nic.bigip}.${nic.id}" => nic

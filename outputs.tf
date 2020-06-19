@@ -59,3 +59,16 @@ output "bigip_map" {
     }
   })
 }
+
+output "all_nic_ids" {
+  description = "List of BIG-IP network interface ids"
+  value = [
+    for id, nic in local.all_network_interfaces :
+    aws_network_interface.bigip[id].id
+  ]
+}
+
+output "all_nic_ids_extended" {
+  description = "Extended list of BIG-IP network interfaces"
+  value = local.network_subnets
+}
