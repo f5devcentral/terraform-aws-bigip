@@ -7,7 +7,6 @@ locals {
       for id, network_interface in bigip_data.network_interfaces : {
         bigip             = bigip
         id                = id
-        eni_id            = aws_network_interface.bigip[id].id
         subnet_id         = network_interface.subnet_id
         security_groups   = network_interface.subnet_security_group_ids
         interface_type    = network_interface.interface_type
