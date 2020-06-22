@@ -60,15 +60,21 @@ output "bigip_map" {
   })
 }
 
-output "all_nic_ids" {
-  description = "List of BIG-IP network interface ids"
-  value = [
-    for id, nic in local.all_network_interfaces :
-    aws_network_interface.bigip[id].id
-  ]
-}
-
 output "all_nic_ids_extended" {
   description = "Extended list of BIG-IP network interfaces"
-  value = local.network_subnets
+  value =  [   for bigip, bigip_data in var.bigip_map : [
+      for id, network_interface in bigip_data.network_interfaces : {
+        bigip             = bigip
+        id                = id
+        eni               = aws_network_interface.bigip[format("%s.%s",bigip,id)].id
+        subnet_id         = network_interface.subnet_id
+        security_groups   = network_interface.subnet_security_group_ids
+        interface_type    = network_interface.interface_type
+        public_ip         = network_interface.public_ip
+        private_ips_count = network_interface.private_ips_count
+        device_index      = network_interface.device_index
+        cloudfailover_tag = network_interface.cloudfailover_tag
+      }
+    ]
+    ]
 }
