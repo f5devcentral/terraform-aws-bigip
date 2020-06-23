@@ -62,7 +62,7 @@ output "bigip_map" {
 
 output "all_nic_ids_extended" {
   description = "Extended list of BIG-IP network interfaces"
-  value =  [   for bigip, bigip_data in var.bigip_map : [
+  value =  flatten([   for bigip, bigip_data in var.bigip_map : [
       for id, network_interface in bigip_data.network_interfaces : {
         bigip             = bigip
         id                = id
@@ -76,5 +76,24 @@ output "all_nic_ids_extended" {
         cloudfailover_tag = network_interface.cloudfailover_tag
       }
     ]
-    ]
+  ])
+}
+
+output "nics_by_device_index" {
+  description = "map of nic ids indexed by device index"
+  value =  {   
+    for bigip, bigip_data in var.bigip_map : bigip => {
+      for nicid, nicdata in bigip_data.network_interfaces :
+        nicdata.device_index => {
+          eni               = aws_network_interface.bigip[format("%s.%s",bigip,nicid)].id
+          subnet_id         = nicdata.subnet_id
+          security_groups   = nicdata.subnet_security_group_ids
+          interface_type    = nicdata.interface_type
+          public_ip         = nicdata.public_ip
+          private_ips_count = nicdata.private_ips_count
+          device_index      = nicdata.device_index
+          cloudfailover_tag = nicdata.cloudfailover_tag
+        }
+    } 
+  }
 }
