@@ -83,6 +83,7 @@ resource "aws_network_interface" "bigip" {
   subnet_id         = each.value.subnet_id
   security_groups   = each.value.security_groups
   private_ips_count = each.value.private_ips_count
+  source_dest_check = (each.value.interface_type == "management")
   tags = {
     "bigip_interface_type" : each.value.interface_type,
     "bigip_public_ip" : each.value.public_ip
