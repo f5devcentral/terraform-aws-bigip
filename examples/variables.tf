@@ -74,3 +74,8 @@ variable cfe_ec2_resource_tag {
   type        = string
   default     = "bigip-cfe"
 }
+
+variable cloudfailover_tag {
+  description = "Tag used by the Cloud Failover Extension"
+  default = "tf_bigip_test"
+}
