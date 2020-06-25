@@ -56,6 +56,7 @@ locals {
             public_ip                 = (subnet.tags.subnet_type == "management" || subnet.tags.subnet_type == "public") ? true : false
             private_ips_count         = 0
             device_index              = subnet.tags.bigip_device_index
+            cloudfailover_tag         = var.cloudfailover_tag
           }
           if subnet.availability_zone == local.azs[num]
         }

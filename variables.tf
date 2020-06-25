@@ -31,6 +31,7 @@ variable "bigip_map" {
       public_ip                 = bool
       private_ips_count         = number
       device_index              = number
+      cloudfailover_tag         = string
     }))
   }))
 }

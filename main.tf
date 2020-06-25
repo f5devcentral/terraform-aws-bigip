@@ -13,6 +13,7 @@ locals {
         public_ip         = network_interface.public_ip
         private_ips_count = network_interface.private_ips_count
         device_index      = network_interface.device_index
+        cloudfailover_tag = network_interface.cloudfailover_tag
       }
     ]
   ])
@@ -27,6 +28,11 @@ locals {
     for nic in local.network_subnets :
     "${nic.bigip}.${nic.id}" => nic
     if(nic.interface_type == "public" ? true : false)
+  }
+
+  all_network_interfaces = {
+    for nic in local.network_subnets :
+    "${nic.bigip}.${nic.id}" => nic
   }
 
   private_network_interfaces = {
@@ -77,9 +83,11 @@ resource "aws_network_interface" "bigip" {
   subnet_id         = each.value.subnet_id
   security_groups   = each.value.security_groups
   private_ips_count = each.value.private_ips_count
+  source_dest_check = (each.value.interface_type == "management")
   tags = {
     "bigip_interface_type" : each.value.interface_type,
     "bigip_public_ip" : each.value.public_ip
+    "f5_cloud_failover_label" : each.value.cloudfailover_tag
   }
 }
 
