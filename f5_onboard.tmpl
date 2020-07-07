@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# CVE-2020-5902
+tmsh modify sys httpd include '"
+# File ETAG CVE
+FileETag MTime Size
+
+# CVE-2020-5902
+<LocationMatch "\"".*\.\.;.*"\"">
+	Redirect 404 /
+</LocationMatch>"'
+tmsh save sys config
+bigstart restart httpd
+# /CVE-2020-5902
+
 # Script must be non-blocking or run in the background.
 
 mkdir -p /config/cloud
