@@ -6,7 +6,7 @@ tmsh modify sys httpd include '"
 FileETag MTime Size
 
 # CVE-2020-5902
-<LocationMatch "\"".*\.\.;.*"\"">
+<LocationMatch ";">
 	Redirect 404 /
 </LocationMatch>"'
 tmsh save sys config
