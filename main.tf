@@ -36,6 +36,15 @@ resource "aws_eip" "mgmt" {
   vpc               = true
 }
 
+#
+# add an elastic IP to the BIG-IP public interface
+#
+resource "aws_eip" "public" {
+  count             = var.mgmt_eip ? length(var.vpc_public_subnet_ids) : 0
+  network_interface = aws_network_interface.public[count.index].id
+  vpc               = true
+}
+
 # 
 # Create Public Network Interfaces
 #
