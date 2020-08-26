@@ -189,12 +189,12 @@ END_TEXT
 
 ### SET BIG-IP PASSWORD
 echo "SET THE BIG-IP PASSWORD"
-pwd=$(python secrets_manager.py | jq -r ".SecretString")
+pwd="$(python secrets_manager.py | jq -r '.SecretString')"
 if [ -z "$pwd" ]
 then
   echo "ERROR: UNABLE TO OBTAIN PASSWORD"
 else
-  tmsh modify auth user admin password $pwd
+  tmsh modify auth user admin password "$pwd"
 fi
 
 ### DOWNLOAD ONBOARDING PKGS
