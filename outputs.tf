@@ -36,3 +36,8 @@ output "private_addresses" {
   description = "List of BIG-IP private addresses"
   value       = aws_network_interface.private[*].private_ips
 }
+
+output "bigip_instance_ids" {
+  description = "List of BIG-IP instance ids"
+  value       = aws_instance.f5_bigip[*].id
+}
