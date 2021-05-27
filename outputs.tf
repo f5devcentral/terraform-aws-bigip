@@ -1,4 +1,8 @@
 # BIG-IP Management Public IP Addresses
+output "deprecation_notice" {
+  value = "This module is no longer under active development. Please refere to the module README for more information."
+}
+
 output "mgmt_public_ips" {
   description = "List of BIG-IP public IP addresses for the management interfaces"
   value       = aws_eip.mgmt[*].public_ip
