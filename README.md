@@ -1,3 +1,6 @@
+# Deprecation
+This module is deprecated. The official F5-supported BIG-IP provisioning module on AWS can be found at https://github.com/F5Networks/terraform-aws-bigip-module. 
+
 # AWS BIG-IP Terraform Module 
 Terraform module to deploy an F5 BIG-IP in AWS.  This module currently supports 1 and 3 nic deployments and defaults to using the AWS Marketplace PAYG (pay-as-you-go) 200Mbps BEST license.  If you would like to use a bring your own license (BYOL) AMI the set the *f5_ami_search_name* variable accordingly.
 
